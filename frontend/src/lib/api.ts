@@ -16,6 +16,16 @@ export type ScreenInsurancePayload = {
   pipeline_result: PipelineResult
 }
 
+// In dev, we rely on Vite's proxy (relative `/api/...`).
+// In production, set `VITE_API_BASE_URL` to your Railway backend origin
+// (e.g. `https://<service>.up.railway.app`) so browser requests reach the backend.
+const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL as string | undefined
+const apiUrl = (path: string) => {
+  if (!API_BASE_URL) return path
+  const base = API_BASE_URL.replace(/\/+$/, '')
+  return `${base}${path}`
+}
+
 const json = (r: Response) => {
   if (!r.ok) throw new Error(`${r.status} ${r.statusText}`)
   return r.json()
@@ -28,7 +38,7 @@ export async function analyzePatient(payload: {
   plan?: InsurancePlan | null
 }): Promise<PipelineResult> {
   return json(
-    await fetch('/api/v1/analyze', {
+    await fetch(apiUrl('/api/v1/analyze'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -40,7 +50,7 @@ export async function screenInsurance(
   payload: ScreenInsurancePayload
 ): Promise<InsuranceScreeningResult> {
   return json(
-    await fetch('/api/v1/insurance/screen', {
+    await fetch(apiUrl('/api/v1/insurance/screen'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -59,7 +69,7 @@ export async function fetchSummary(
   drugProfiles?: DrugProfile[]
 ): Promise<string> {
   const data = await json(
-    await fetch('/api/v1/summary', {
+    await fetch(apiUrl('/api/v1/summary'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -80,7 +90,7 @@ export async function fetchDrugProfiles(
     body.insurance_plan = plan
   }
   const data = await json(
-    await fetch('/api/v1/drug-profiles', {
+    await fetch(apiUrl('/api/v1/drug-profiles'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -97,7 +107,7 @@ export async function fetchClinicianSummary(payload: {
   drug_profiles?: DrugProfile[]
 }): Promise<ClinicianSummary> {
   return json(
-    await fetch('/api/v1/clinician-summary', {
+    await fetch(apiUrl('/api/v1/clinician-summary'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -133,14 +143,14 @@ export async function uploadGenotype(file: File): Promise<GenotypeUploadResult> 
   const form = new FormData()
   form.append('file', file)
   const data = await json(
-    await fetch('/api/v1/genotype/upload', { method: 'POST', body: form })
+    await fetch(apiUrl('/api/v1/genotype/upload'), { method: 'POST', body: form })
   )
   return data as GenotypeUploadResult
 }
 
 export async function previewGenotype(enzyme: string, allele1: string, allele2: string) {
   return json(
-    await fetch('/api/v1/genotype/preview', {
+    await fetch(apiUrl('/api/v1/genotype/preview'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ enzyme, allele1, allele2 }),
@@ -149,12 +159,12 @@ export async function previewGenotype(enzyme: string, allele1: string, allele2: 
 }
 
 export async function fetchDrugList(): Promise<string[]> {
-  const data = await json(await fetch('/api/v1/meta/drugs'))
+  const data = await json(await fetch(apiUrl('/api/v1/meta/drugs')))
   return data.drugs as string[]
 }
 
 export async function fetchPlans(): Promise<InsurancePlan[]> {
-  const data = await json(await fetch('/api/v1/meta/plans'))
+  const data = await json(await fetch(apiUrl('/api/v1/meta/plans')))
   return data.plans as InsurancePlan[]
 }
 
@@ -164,14 +174,14 @@ export async function ocrMedications(file: File): Promise<{ medications: OcrMedi
   const form = new FormData()
   form.append('file', file)
   const data = await json(
-    await fetch('/api/v1/ocr/medications', { method: 'POST', body: form })
+    await fetch(apiUrl('/api/v1/ocr/medications'), { method: 'POST', body: form })
   )
   return { medications: data.medications as OcrMedication[], error: data.error as string | undefined }
 }
 
 export async function askHelpChat(page: ActiveView, question: string): Promise<HelpChatReply> {
   return json(
-    await fetch('/api/v1/help-chat', {
+    await fetch(apiUrl('/api/v1/help-chat'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ page, question }),
