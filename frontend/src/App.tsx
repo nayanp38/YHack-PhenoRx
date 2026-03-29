@@ -51,6 +51,7 @@ function safeDrugNames(
 export default function App() {
   const [activeView, setActiveView] = useState<ActiveView>('intake')
   const [hasAnalyzed, setHasAnalyzed] = useState(false)
+  const [genotypeDefaultMode, setGenotypeDefaultMode] = useState<'upload' | 'manual' | undefined>(undefined)
 
   const [patientId, setPatientId] = useState('DEMO')
   const [genotypes, setGenotypes] = useState<Record<string, string>>({
@@ -166,25 +167,10 @@ export default function App() {
         matched = null
       }
       setPlan(matched)
-      const meds = p.medications
-        .filter((m) => m.drug_name.trim())
-        .map((m) => ({
-          drug_name: m.drug_name.trim().toLowerCase(),
-          ...(m.dose_mg != null ? { dosage: String(m.dose_mg) } : {}),
-          ...(m.indication?.trim() ? { indication: m.indication.trim() } : {}),
-        }))
-      await runAnalyze({
-        patient_id: p.patient_id,
-        genotypes: {
-          CYP2D6: p.genotypes.CYP2D6 ?? '*1/*1',
-          CYP2C19: p.genotypes.CYP2C19 ?? '*1/*1',
-          CYP2C9: p.genotypes.CYP2C9 ?? '*1/*1',
-        },
-        medications: meds,
-        plan: matched,
-      })
+      setGenotypeDefaultMode('manual')
+      setActiveView('intake')
     },
-    [runAnalyze]
+    []
   )
 
   useEffect(() => {
@@ -243,6 +229,7 @@ export default function App() {
             medications={medications}
             plan={plan}
             isLoading={isLoading}
+            genotypeDefaultMode={genotypeDefaultMode}
             onPatientIdChange={setPatientId}
             onGenotypesChange={setGenotypes}
             onMedicationsChange={setMedications}

@@ -24,10 +24,15 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024
 type Props = {
   genotypes: Record<string, string>
   onChange: (g: Record<string, string>) => void
+  defaultMode?: 'upload' | 'manual'
 }
 
-export function GenotypeSelector({ genotypes, onChange }: Props) {
-  const [mode, setMode] = useState<'upload' | 'manual'>('upload')
+export function GenotypeSelector({ genotypes, onChange, defaultMode }: Props) {
+  const [mode, setMode] = useState<'upload' | 'manual'>(defaultMode ?? 'upload')
+
+  useEffect(() => {
+    if (defaultMode) setMode(defaultMode)
+  }, [defaultMode])
   const [uploadLoading, setUploadLoading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [uploadResult, setUploadResult] = useState<GenotypeUploadResult | null>(null)

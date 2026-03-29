@@ -23,6 +23,7 @@ type Props = {
   medications: MedicationInput[]
   plan: InsurancePlan | null
   isLoading: boolean
+  genotypeDefaultMode?: 'upload' | 'manual'
   onPatientIdChange: (id: string) => void
   onGenotypesChange: (g: Record<string, string>) => void
   onMedicationsChange: (m: MedicationInput[]) => void
@@ -36,6 +37,7 @@ export function PatientIntake({
   medications,
   plan,
   isLoading,
+  genotypeDefaultMode,
   onPatientIdChange,
   onGenotypesChange,
   onMedicationsChange,
@@ -229,7 +231,7 @@ export function PatientIntake({
         </div>
 
         <div className="flex flex-col gap-6">
-          <GenotypeSelector genotypes={genotypes} onChange={onGenotypesChange} />
+          <GenotypeSelector genotypes={genotypes} onChange={onGenotypesChange} defaultMode={genotypeDefaultMode} />
           <InsurancePlanSelector value={plan} onChange={onPlanChange} />
         </div>
       </div>
