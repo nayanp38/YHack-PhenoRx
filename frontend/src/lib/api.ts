@@ -1,4 +1,6 @@
 import type {
+  ActiveView,
+  HelpChatReply,
   InsurancePlan,
   InsuranceScreeningResult,
   PipelineResult,
@@ -87,4 +89,14 @@ export async function ocrMedications(file: File): Promise<string[]> {
     await fetch('/api/v1/ocr/medications', { method: 'POST', body: form })
   )
   return data.medications as string[]
+}
+
+export async function askHelpChat(page: ActiveView, question: string): Promise<HelpChatReply> {
+  return json(
+    await fetch('/api/v1/help-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ page, question }),
+    })
+  )
 }

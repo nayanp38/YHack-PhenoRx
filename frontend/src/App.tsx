@@ -21,6 +21,7 @@ import { RiskReport } from './components/RiskReport'
 import { DrugMatrix } from './components/DrugMatrix'
 import { DischargeSummary } from './components/DischargeSummary'
 import { ViewStepper } from './components/ViewStepper'
+import { HelpChat } from './components/HelpChat'
 
 const VIEW_ORDER: ActiveView[] = ['intake', 'enzyme', 'risk', 'matrix', 'summary']
 
@@ -247,6 +248,8 @@ export default function App() {
           </button>
         </div>
       )}
+
+      {activeView === 'intake' && <HelpChat page={activeView} />}
     </div>
   )
 }

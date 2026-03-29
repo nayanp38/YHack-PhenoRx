@@ -31,6 +31,124 @@ from phenorx.engine.pipeline import (
 from phenorx.data.formulary_service import MockFormularyService, get_service_for_patient
 
 ROOT = Path(__file__).resolve().parents[3]
+HELP_PAGES = {"intake", "enzyme", "risk", "matrix", "summary"}
+
+HELP_CONTEXTS: Dict[str, Dict[str, Any]] = {
+    "global": {
+        "app_name": "PhenoRx",
+        "app_purpose": (
+            "PhenoRx is a medication review dashboard that combines entered genotypes, "
+            "medications, and optional insurance plan information to explain potential "
+            "drug-gene issues and show the next pages in the workflow."
+        ),
+        "guardrails": [
+            "Only explain how to use the application and what its screens mean.",
+            "Do not give diagnosis, treatment, or medication-prescribing advice.",
+            "If asked for clinical decisions, direct the user to a clinician.",
+        ],
+        "workflow": [
+            "Start on Patient Intake.",
+            "Enter or load a patient, add medications, and choose genotypes.",
+            "Optionally select an insurance plan.",
+            "Click Analyze Discharge to generate the later views.",
+            "Review enzyme status, interaction risks, matrix details, and summary output.",
+        ],
+    },
+    "intake": {
+        "title": "Patient Intake",
+        "what_it_does": (
+            "Collects patient ID, medications, genotype selections, and an optional "
+            "insurance plan before analysis."
+        ),
+        "help_points": [
+            "Patient ID is just a label for the run.",
+            "Use Add Medication to add rows manually.",
+            "Drug names should match known medications for autocomplete to help.",
+            "Dose and indication are optional.",
+            "You can drag in a photo or PDF of a handwritten list to extract medication names.",
+            "Insurance selection is optional and affects later affordability coverage views.",
+            "Analyze Discharge runs the backend pipeline and unlocks the next pages.",
+            "Load Demo Patient in the top bar fills the form and runs the flow for a sample case.",
+        ],
+        "suggested_questions": [
+            "How do I get started on this page?",
+            "What fields are required before I click Analyze Discharge?",
+            "How does the demo patient button work?",
+            "Can I upload a handwritten medication list?",
+        ],
+    },
+    "enzyme": {
+        "title": "Enzyme Dashboard",
+        "what_it_does": (
+            "Shows baseline genotype-derived enzyme activity and how medications may "
+            "shift the effective phenotype for each enzyme."
+        ),
+        "help_points": [
+            "Baseline values come from the entered genotype.",
+            "Effective values reflect the current medication list and any perpetrator drugs.",
+            "Delta indicates how much the effective score changed from baseline.",
+            "Use this page to understand why the risk page may flag certain drugs.",
+        ],
+        "suggested_questions": [
+            "What is this page showing me?",
+            "What is the difference between baseline and effective phenotype?",
+            "What does delta mean here?",
+            "How should I use this page with the next one?",
+        ],
+    },
+    "risk": {
+        "title": "Risk Report",
+        "what_it_does": (
+            "Summarizes flagged interactions, severity levels, consequences, alternatives, "
+            "and insurance-related affordability signals when available."
+        ),
+        "help_points": [
+            "Each card highlights a flagged interaction from the analyzed medication list.",
+            "Risk level is the app's severity label for the interaction.",
+            "Alternative drugs are suggestions from the project knowledge base, not final recommendations.",
+            "If an insurance plan was chosen earlier, coverage information may appear here.",
+        ],
+        "suggested_questions": [
+            "How do I read the risk levels?",
+            "Where do the alternatives come from?",
+            "Why am I seeing insurance information here?",
+            "What should I review first on this page?",
+        ],
+    },
+    "matrix": {
+        "title": "Drug Matrix",
+        "what_it_does": (
+            "Displays drug-by-enzyme classification details such as substrate, inhibitor, "
+            "or inducer roles and supporting evidence fields."
+        ),
+        "help_points": [
+            "Rows and columns connect medications to relevant enzyme behavior.",
+            "This page is mainly for detail and transparency after reviewing the risk page.",
+            "Evidence sources and alternative lists come from the local knowledge base.",
+        ],
+        "suggested_questions": [
+            "What does this matrix mean?",
+            "What do the role labels mean?",
+            "When should I use this page?",
+        ],
+    },
+    "summary": {
+        "title": "Discharge Summary",
+        "what_it_does": (
+            "Presents a patient-facing summary generated from the analyzed pipeline result."
+        ),
+        "help_points": [
+            "This page converts the technical analysis into plainer language.",
+            "It is meant for review and handoff, not as stand-alone medical advice.",
+            "If the wording looks incomplete, rerun after updating the intake data.",
+        ],
+        "suggested_questions": [
+            "What is this summary for?",
+            "Can I regenerate the summary by changing the intake?",
+            "How is this different from the risk page?",
+        ],
+    },
+}
 
 app = FastAPI(title="PhenoRx API", version="1.0.0")
 
@@ -201,6 +319,74 @@ class SummaryRequest(BaseModel):
     pipeline_result: Dict[str, Any] = Field(default_factory=dict)
 
 
+class HelpChatRequest(BaseModel):
+    page: str
+    question: str
+
+
+def _page_help_context(page: str) -> Dict[str, Any]:
+    key = page.strip().lower()
+    if key not in HELP_PAGES:
+        key = "intake"
+    return {
+        "page": key,
+        "global": HELP_CONTEXTS["global"],
+        "page_context": HELP_CONTEXTS[key],
+    }
+
+
+def _fallback_help_answer(page: str, question: str) -> str:
+    ctx = _page_help_context(page)
+    page_ctx = ctx["page_context"]
+    normalized = question.strip().lower()
+
+    if not normalized:
+        return (
+            f"{page_ctx['title']} helps with {page_ctx['what_it_does']} "
+            f"Try one of the suggested questions below."
+        )
+
+    if any(word in normalized for word in ["start", "begin", "first", "how do i use"]):
+        workflow = " ".join(f"{i + 1}. {step}" for i, step in enumerate(ctx["global"]["workflow"]))
+        return f"Use this workflow: {workflow}"
+
+    if any(word in normalized for word in ["required", "need", "must", "before analyze"]):
+        if page == "intake":
+            return (
+                "On Patient Intake, you need at least one medication with a name. "
+                "Patient ID is just a label, dose and indication are optional, "
+                "and insurance selection is optional."
+            )
+        return (
+            "The later pages depend on running Analyze Discharge from Patient Intake first. "
+            "If a page is empty, go back and run the intake flow."
+        )
+
+    if "demo" in normalized:
+        return (
+            "Use the Load Demo Patient button in the top navigation. "
+            "It loads a sample patient, fills the intake fields, and starts the analysis flow."
+        )
+
+    if any(word in normalized for word in ["upload", "photo", "pdf", "handwritten", "ocr"]):
+        return (
+            "On Patient Intake, you can drag and drop or browse for an image or PDF of a handwritten "
+            "medication list. The app extracts medication names and adds them as rows."
+        )
+
+    if any(word in normalized for word in ["medical advice", "should i take", "should i stop", "diagnose"]):
+        return (
+            "This help chat is only for using the app and understanding what its screens show. "
+            "It should not be used for diagnosis, medication changes, or treatment decisions."
+        )
+
+    bullet_lines = "\n".join(f"- {point}" for point in page_ctx["help_points"][:4])
+    return (
+        f"{page_ctx['title']} is the screen that {page_ctx['what_it_does']}\n"
+        f"Key details:\n{bullet_lines}"
+    )
+
+
 def _fallback_summary(data: Dict[str, Any]) -> str:
     pid = data.get("patient_id") or "Patient"
     interactions = data.get("interactions") or []
@@ -284,6 +470,46 @@ def summary(req: SummaryRequest) -> Dict[str, str]:
     if not text:
         text = _fallback_summary(req.pipeline_result)
     return {"summary": text}
+
+
+@app.post("/api/v1/help-chat")
+def help_chat(req: HelpChatRequest) -> Dict[str, Any]:
+    page = req.page.strip().lower() or "intake"
+    if page not in HELP_PAGES:
+        page = "intake"
+
+    context = _page_help_context(page)
+    answer: Optional[str] = None
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if api_key:
+        try:
+            from google import genai
+
+            client = genai.Client(api_key=api_key)
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=(
+                    "You are the in-app help assistant for PhenoRx. "
+                    "Answer only using the provided product context. "
+                    "Be concise, practical, and UI-focused. "
+                    "If asked for clinical advice, say you can only explain how the app works and "
+                    "the user should consult a clinician.\n\n"
+                    f"Product context JSON:\n{json.dumps(context, indent=2)}\n\n"
+                    f"User question: {req.question.strip()}"
+                ),
+            )
+            answer = (response.text or "").strip() or None
+        except Exception:
+            answer = None
+
+    if not answer:
+        answer = _fallback_help_answer(page, req.question)
+
+    return {
+        "page": page,
+        "answer": answer,
+        "suggested_questions": context["page_context"]["suggested_questions"],
+    }
 
 
 @app.post("/api/v1/ocr/medications")
