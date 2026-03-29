@@ -1,0 +1,20 @@
+[
+  {
+    "contractId": "S1030",
+    "planId": "001",
+    "planName": "BlueRx Enhanced Plus",
+    "planType": "PDP"
+  },
+  {
+    "contractId": "H0028",
+    "planId": "014",
+    "planName": "Humana Gold Plus H0028-014",
+    "planType": "HMO"
+  },
+  {
+    "contractId": "Aetna",
+    "planId": "RX-Saver",
+    "planName": "Aetna Medicare Rx Saver",
+    "planType": "PDP"
+  }
+]

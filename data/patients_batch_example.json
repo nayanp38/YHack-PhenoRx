@@ -1,0 +1,81 @@
+{
+  "patients": [
+    {
+      "patient_id": "alt-test-1-basic-alternative",
+      "genotypes": {
+        "CYP2D6": "*1/*1",
+        "CYP2C19": "*1/*1"
+      },
+      "medications": [
+        { "drug_name": "metoprolol", "dose_mg": 50 },
+        { "drug_name": "paroxetine", "dose_mg": 20 }
+      ]
+    },
+    {
+      "patient_id": "alt-test-2-class-appropriate",
+      "genotypes": {
+        "CYP2D6": "*1/*1",
+        "CYP2C19": "*1/*1"
+      },
+      "medications": [
+        { "drug_name": "codeine", "dose_mg": 30 },
+        { "drug_name": "fluoxetine", "dose_mg": 20 }
+      ]
+    },
+    {
+      "patient_id": "alt-test-3-separate-alternatives",
+      "genotypes": {
+        "CYP2D6": "*1/*2",
+        "CYP2C19": "*1/*1"
+      },
+      "medications": [
+        { "drug_name": "metoprolol", "dose_mg": 50 },
+        { "drug_name": "codeine", "dose_mg": 30 },
+        { "drug_name": "fluoxetine", "dose_mg": 20 }
+      ]
+    },
+    {
+      "patient_id": "alt-test-4-filter-unsafe-alternatives",
+      "genotypes": {
+        "CYP2D6": "*1/*1",
+        "CYP2C19": "*1/*1"
+      },
+      "medications": [
+        { "drug_name": "codeine", "dose_mg": 30 },
+        { "drug_name": "fluoxetine", "dose_mg": 20 }
+      ]
+    },
+    {
+      "patient_id": "alt-test-5-perpetrator-swap",
+      "genotypes": {
+        "CYP2D6": "*1/*4",
+        "CYP2C19": "*1/*1"
+      },
+      "medications": [
+        { "drug_name": "metoprolol", "dose_mg": 50 },
+        { "drug_name": "fluoxetine", "dose_mg": 20 }
+      ]
+    },
+    {
+      "patient_id": "alt-test-6-no-alternative-exists",
+      "genotypes": {
+        "CYP2D6": "*4/*4",
+        "CYP2C19": "*1/*1"
+      },
+      "medications": [
+        { "drug_name": "tamoxifen", "dose_mg": 20 }
+      ]
+    },
+    {
+      "patient_id": "alt-test-7-alternative-creates-new-interaction",
+      "genotypes": {
+        "CYP2D6": "*1/*1",
+        "CYP2C19": "*1/*2"
+      },
+      "medications": [
+        { "drug_name": "clopidogrel", "dose_mg": 75 },
+        { "drug_name": "omeprazole", "dose_mg": 20 }
+      ]
+    }
+  ]
+}

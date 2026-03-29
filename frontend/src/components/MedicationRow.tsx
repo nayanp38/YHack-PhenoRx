@@ -1,0 +1,93 @@
+import { X } from 'lucide-react'
+import { useMemo, useRef, useState } from 'react'
+import type { MedicationInput } from '../types'
+
+type Props = {
+  med: MedicationInput
+  index: number
+  drugNames: string[]
+  onChange: (i: number, m: MedicationInput) => void
+  onRemove: (i: number) => void
+}
+
+export function MedicationRow({ med, index, drugNames, onChange, onRemove }: Props) {
+  const [open, setOpen] = useState(false)
+  const [q, setQ] = useState(med.drug_name)
+  const blurRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const suggestions = useMemo(() => {
+    const s = q.trim().toLowerCase()
+    if (!s) return drugNames.slice(0, 12)
+    return drugNames.filter((d) => d.includes(s)).slice(0, 12)
+  }, [drugNames, q])
+
+  return (
+    <div className="mb-3 flex flex-wrap items-start gap-2">
+      <div className="relative min-w-[200px] flex-[2]">
+        <input
+          className="w-full rounded-lg border border-[var(--gray-200)] px-3 py-2 text-sm"
+          placeholder="Drug name"
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value)
+            onChange(index, { ...med, drug_name: e.target.value })
+            setOpen(true)
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => {
+            blurRef.current = setTimeout(() => setOpen(false), 150)
+          }}
+        />
+        {open && suggestions.length > 0 && (
+          <ul className="absolute left-0 right-0 top-full z-20 mt-1 max-h-40 overflow-auto rounded-lg border border-[var(--gray-200)] bg-white shadow-md">
+            {suggestions.map((d) => (
+              <li key={d}>
+                <button
+                  type="button"
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-[var(--gray-50)]"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setQ(d)
+                    onChange(index, { ...med, drug_name: d })
+                    setOpen(false)
+                    document.getElementById(`dose-${index}`)?.focus()
+                  }}
+                >
+                  {d}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <input
+        id={`dose-${index}`}
+        type="number"
+        className="w-full min-w-[80px] flex-1 rounded-lg border border-[var(--gray-200)] px-3 py-2 text-sm md:max-w-[120px]"
+        placeholder="mg"
+        value={med.dose_mg === '' ? '' : med.dose_mg}
+        onChange={(e) => {
+          const v = e.target.value
+          onChange(index, {
+            ...med,
+            dose_mg: v === '' ? '' : Number(v),
+          })
+        }}
+      />
+      <input
+        className="min-w-[120px] flex-1 rounded-lg border border-[var(--gray-200)] px-3 py-2 text-sm"
+        placeholder="indication"
+        value={med.indication}
+        onChange={(e) => onChange(index, { ...med, indication: e.target.value })}
+      />
+      <button
+        type="button"
+        className="shrink-0 rounded-lg p-2 text-[var(--critical-red)] hover:bg-[var(--critical-red-bg)]"
+        aria-label="Remove medication"
+        onClick={() => onRemove(index)}
+      >
+        <X className="h-5 w-5" />
+      </button>
+    </div>
+  )
+}

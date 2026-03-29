@@ -1,0 +1,11 @@
+{
+  "patient_id": "example-001",
+  "genotypes": {
+    "CYP2D6": "*1/*1",
+    "CYP2C19": "*1/*1"
+  },
+  "medications": [
+    { "drug_name": "codeine", "dose_mg": 30 },
+    { "drug_name": "fluoxetine", "dose_mg": 20 }
+  ]
+}

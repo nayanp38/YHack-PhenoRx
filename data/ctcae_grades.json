@@ -1,0 +1,672 @@
+{
+  "nausea": {
+    "soc": "Gastrointestinal",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "vomiting": {
+    "soc": "Gastrointestinal",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "diarrhea": {
+    "soc": "Gastrointestinal",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "constipation": {
+    "soc": "Gastrointestinal",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "abdominal pain": {
+    "soc": "Gastrointestinal",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "dyspepsia": {
+    "soc": "Gastrointestinal",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "flatulence": {
+    "soc": "Gastrointestinal",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "dry mouth": {
+    "soc": "Gastrointestinal",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "stomatitis": {
+    "soc": "Gastrointestinal",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "anorexia": {
+    "soc": "Metabolism",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "decreased appetite": {
+    "soc": "Metabolism",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "gastrointestinal hemorrhage": {
+    "soc": "Gastrointestinal",
+    "typical_grade": 3,
+    "max_grade": 5
+  },
+  "pancreatitis": {
+    "soc": "Gastrointestinal",
+    "typical_grade": 2,
+    "max_grade": 5
+  },
+  "oral mucositis": {
+    "soc": "Gastrointestinal",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "headache": {
+    "soc": "Nervous system",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "dizziness": {
+    "soc": "Nervous system",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "somnolence": {
+    "soc": "Nervous system",
+    "typical_grade": 2,
+    "max_grade": 3
+  },
+  "insomnia": {
+    "soc": "Psychiatric",
+    "typical_grade": 2,
+    "max_grade": 3
+  },
+  "tremor": {
+    "soc": "Nervous system",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "paresthesia": {
+    "soc": "Nervous system",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "seizure": {
+    "soc": "Nervous system",
+    "typical_grade": 3,
+    "max_grade": 5
+  },
+  "convulsion": {
+    "soc": "Nervous system",
+    "typical_grade": 3,
+    "max_grade": 5
+  },
+  "serotonin syndrome": {
+    "soc": "Nervous system",
+    "typical_grade": 3,
+    "max_grade": 5
+  },
+  "neuroleptic malignant syndrome": {
+    "soc": "Nervous system",
+    "typical_grade": 4,
+    "max_grade": 5
+  },
+  "ataxia": {
+    "soc": "Nervous system",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "vertigo": {
+    "soc": "Nervous system",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "dysgeusia": {
+    "soc": "Nervous system",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "sedation": {
+    "soc": "Nervous system",
+    "typical_grade": 2,
+    "max_grade": 3
+  },
+  "drowsiness": {
+    "soc": "Nervous system",
+    "typical_grade": 2,
+    "max_grade": 3
+  },
+  "confusion": {
+    "soc": "Nervous system",
+    "typical_grade": 2,
+    "max_grade": 3
+  },
+  "syncope": {
+    "soc": "Nervous system",
+    "typical_grade": 2,
+    "max_grade": 3
+  },
+  "peripheral neuropathy": {
+    "soc": "Nervous system",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "respiratory depression": {
+    "soc": "Respiratory",
+    "typical_grade": 3,
+    "max_grade": 5
+  },
+  "qt prolongation": {
+    "soc": "Cardiac",
+    "typical_grade": 2,
+    "max_grade": 4
+  },
+  "torsades de pointes": {
+    "soc": "Cardiac",
+    "typical_grade": 4,
+    "max_grade": 5
+  },
+  "bradycardia": {
+    "soc": "Cardiac",
+    "typical_grade": 2,
+    "max_grade": 4
+  },
+  "tachycardia": {
+    "soc": "Cardiac",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "palpitations": {
+    "soc": "Cardiac",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "hypertension": {
+    "soc": "Vascular",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "hypotension": {
+    "soc": "Vascular",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "orthostatic hypotension": {
+    "soc": "Vascular",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "edema": {
+    "soc": "Vascular",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "peripheral edema": {
+    "soc": "Vascular",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "chest pain": {
+    "soc": "Cardiac",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "arrhythmia": {
+    "soc": "Cardiac",
+    "typical_grade": 2,
+    "max_grade": 4
+  },
+  "cardiac arrest": {
+    "soc": "Cardiac",
+    "typical_grade": 5,
+    "max_grade": 5
+  },
+  "heart failure": {
+    "soc": "Cardiac",
+    "typical_grade": 2,
+    "max_grade": 5
+  },
+  "myocardial infarction": {
+    "soc": "Cardiac",
+    "typical_grade": 3,
+    "max_grade": 5
+  },
+  "atrial fibrillation": {
+    "soc": "Cardiac",
+    "typical_grade": 2,
+    "max_grade": 3
+  },
+  "rash": {
+    "soc": "Dermatologic",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "pruritus": {
+    "soc": "Dermatologic",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "urticaria": {
+    "soc": "Dermatologic",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "alopecia": {
+    "soc": "Dermatologic",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "sweating": {
+    "soc": "Dermatologic",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "hyperhidrosis": {
+    "soc": "Dermatologic",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "stevens-johnson syndrome": {
+    "soc": "Dermatologic",
+    "typical_grade": 4,
+    "max_grade": 5
+  },
+  "toxic epidermal necrolysis": {
+    "soc": "Dermatologic",
+    "typical_grade": 4,
+    "max_grade": 5
+  },
+  "photosensitivity": {
+    "soc": "Dermatologic",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "dermatitis": {
+    "soc": "Dermatologic",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "hand-foot syndrome": {
+    "soc": "Dermatologic",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "palmar-plantar erythrodysesthesia": {
+    "soc": "Dermatologic",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "hepatotoxicity": {
+    "soc": "Hepatobiliary",
+    "typical_grade": 2,
+    "max_grade": 5
+  },
+  "hepatic failure": {
+    "soc": "Hepatobiliary",
+    "typical_grade": 4,
+    "max_grade": 5
+  },
+  "jaundice": {
+    "soc": "Hepatobiliary",
+    "typical_grade": 2,
+    "max_grade": 4
+  },
+  "elevated transaminases": {
+    "soc": "Hepatobiliary",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "alt increased": {
+    "soc": "Hepatobiliary",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "ast increased": {
+    "soc": "Hepatobiliary",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "renal failure": {
+    "soc": "Renal",
+    "typical_grade": 2,
+    "max_grade": 5
+  },
+  "nephrotoxicity": {
+    "soc": "Renal",
+    "typical_grade": 2,
+    "max_grade": 5
+  },
+  "creatinine increased": {
+    "soc": "Renal",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "bleeding": {
+    "soc": "Blood",
+    "typical_grade": 1,
+    "max_grade": 5
+  },
+  "hemorrhage": {
+    "soc": "Blood",
+    "typical_grade": 2,
+    "max_grade": 5
+  },
+  "thrombocytopenia": {
+    "soc": "Blood",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "anemia": {
+    "soc": "Blood",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "neutropenia": {
+    "soc": "Blood",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "leukopenia": {
+    "soc": "Blood",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "pancytopenia": {
+    "soc": "Blood",
+    "typical_grade": 2,
+    "max_grade": 4
+  },
+  "agranulocytosis": {
+    "soc": "Blood",
+    "typical_grade": 3,
+    "max_grade": 5
+  },
+  "aplastic anemia": {
+    "soc": "Blood",
+    "typical_grade": 3,
+    "max_grade": 5
+  },
+  "purpura": {
+    "soc": "Blood",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "eosinophilia": {
+    "soc": "Blood",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "thrombotic thrombocytopenic purpura": {
+    "soc": "Blood",
+    "typical_grade": 4,
+    "max_grade": 5
+  },
+  "weight gain": {
+    "soc": "Metabolism",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "weight loss": {
+    "soc": "Metabolism",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "hyperglycemia": {
+    "soc": "Metabolism",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "hypoglycemia": {
+    "soc": "Metabolism",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "hyponatremia": {
+    "soc": "Metabolism",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "hyperkalemia": {
+    "soc": "Metabolism",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "hypokalemia": {
+    "soc": "Metabolism",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "hypercholesterolemia": {
+    "soc": "Metabolism",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "hypomagnesemia": {
+    "soc": "Metabolism",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "diabetes mellitus": {
+    "soc": "Metabolism",
+    "typical_grade": 2,
+    "max_grade": 4
+  },
+  "myalgia": {
+    "soc": "Musculoskeletal",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "arthralgia": {
+    "soc": "Musculoskeletal",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "myopathy": {
+    "soc": "Musculoskeletal",
+    "typical_grade": 2,
+    "max_grade": 4
+  },
+  "rhabdomyolysis": {
+    "soc": "Musculoskeletal",
+    "typical_grade": 3,
+    "max_grade": 5
+  },
+  "back pain": {
+    "soc": "Musculoskeletal",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "muscle spasm": {
+    "soc": "Musculoskeletal",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "dyspnea": {
+    "soc": "Respiratory",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "cough": {
+    "soc": "Respiratory",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "bronchospasm": {
+    "soc": "Respiratory",
+    "typical_grade": 2,
+    "max_grade": 4
+  },
+  "pharyngitis": {
+    "soc": "Respiratory",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "rhinitis": {
+    "soc": "Respiratory",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "sinusitis": {
+    "soc": "Respiratory",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "upper respiratory infection": {
+    "soc": "Respiratory",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "pneumonia": {
+    "soc": "Respiratory",
+    "typical_grade": 2,
+    "max_grade": 5
+  },
+  "pulmonary edema": {
+    "soc": "Respiratory",
+    "typical_grade": 3,
+    "max_grade": 5
+  },
+  "sexual dysfunction": {
+    "soc": "Reproductive",
+    "typical_grade": 2,
+    "max_grade": 3
+  },
+  "ejaculation disorder": {
+    "soc": "Reproductive",
+    "typical_grade": 2,
+    "max_grade": 3
+  },
+  "erectile dysfunction": {
+    "soc": "Reproductive",
+    "typical_grade": 2,
+    "max_grade": 3
+  },
+  "decreased libido": {
+    "soc": "Reproductive",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "urinary retention": {
+    "soc": "Renal",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "urinary frequency": {
+    "soc": "Renal",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "anxiety": {
+    "soc": "Psychiatric",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "agitation": {
+    "soc": "Psychiatric",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "suicidal ideation": {
+    "soc": "Psychiatric",
+    "typical_grade": 3,
+    "max_grade": 5
+  },
+  "hallucination": {
+    "soc": "Psychiatric",
+    "typical_grade": 2,
+    "max_grade": 3
+  },
+  "mania": {
+    "soc": "Psychiatric",
+    "typical_grade": 2,
+    "max_grade": 3
+  },
+  "depression": {
+    "soc": "Psychiatric",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "nervousness": {
+    "soc": "Psychiatric",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "hypersensitivity": {
+    "soc": "Immune",
+    "typical_grade": 2,
+    "max_grade": 5
+  },
+  "anaphylaxis": {
+    "soc": "Immune",
+    "typical_grade": 4,
+    "max_grade": 5
+  },
+  "angioedema": {
+    "soc": "Immune",
+    "typical_grade": 2,
+    "max_grade": 4
+  },
+  "drug hypersensitivity": {
+    "soc": "Immune",
+    "typical_grade": 2,
+    "max_grade": 5
+  },
+  "lactic acidosis": {
+    "soc": "Metabolism",
+    "typical_grade": 3,
+    "max_grade": 5
+  },
+  "infection": {
+    "soc": "Infections",
+    "typical_grade": 1,
+    "max_grade": 5
+  },
+  "blurred vision": {
+    "soc": "Eye",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "visual impairment": {
+    "soc": "Eye",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "fatigue": {
+    "soc": "General",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "asthenia": {
+    "soc": "General",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "malaise": {
+    "soc": "General",
+    "typical_grade": 1,
+    "max_grade": 2
+  },
+  "fever": {
+    "soc": "General",
+    "typical_grade": 1,
+    "max_grade": 4
+  },
+  "pain": {
+    "soc": "General",
+    "typical_grade": 1,
+    "max_grade": 3
+  },
+  "chills": {
+    "soc": "General",
+    "typical_grade": 1,
+    "max_grade": 2
+  }
+}
