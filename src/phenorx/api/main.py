@@ -4,6 +4,8 @@ PhenoRx REST API for the React dashboard.
 Endpoints:
   POST /api/v1/analyze
   POST /api/v1/insurance/screen
+  POST /api/v1/drug-profiles
+  POST /api/v1/clinician-summary
   POST /api/v1/summary
   POST /api/v1/genotype/preview
   GET  /api/v1/meta/drugs
@@ -28,10 +30,12 @@ from phenorx.engine.pipeline import (
     load_default_knowledge_base,
     run_pipeline,
 )
+from phenorx.api.clinician_summary import clinician_summary_to_dict, generate_clinician_summary
+from phenorx.api.drug_profile_builder import build_drug_profiles_response
 from phenorx.data.formulary_service import MockFormularyService, get_service_for_patient
 
 ROOT = Path(__file__).resolve().parents[3]
-HELP_PAGES = {"intake", "enzyme", "risk", "matrix", "summary"}
+HELP_PAGES = {"intake", "enzyme", "risk", "summary"}
 
 HELP_CONTEXTS: Dict[str, Dict[str, Any]] = {
     "global": {
@@ -51,7 +55,7 @@ HELP_CONTEXTS: Dict[str, Dict[str, Any]] = {
             "Enter or load a patient, add medications, and choose genotypes.",
             "Optionally select an insurance plan.",
             "Click Analyze Discharge to generate the later views.",
-            "Review enzyme status, interaction risks, matrix details, and summary output.",
+            "Review enzyme status, interaction risks, risk report details, and discharge summary.",
         ],
     },
     "intake": {
@@ -115,32 +119,15 @@ HELP_CONTEXTS: Dict[str, Dict[str, Any]] = {
             "What should I review first on this page?",
         ],
     },
-    "matrix": {
-        "title": "Drug Matrix",
-        "what_it_does": (
-            "Displays drug-by-enzyme classification details such as substrate, inhibitor, "
-            "or inducer roles and supporting evidence fields."
-        ),
-        "help_points": [
-            "Rows and columns connect medications to relevant enzyme behavior.",
-            "This page is mainly for detail and transparency after reviewing the risk page.",
-            "Evidence sources and alternative lists come from the local knowledge base.",
-        ],
-        "suggested_questions": [
-            "What does this matrix mean?",
-            "What do the role labels mean?",
-            "When should I use this page?",
-        ],
-    },
     "summary": {
-        "title": "Discharge Summary",
+        "title": "Clinical Discharge Review",
         "what_it_does": (
-            "Presents a patient-facing summary generated from the analyzed pipeline result."
+            "Presents a clinician-facing structured summary from the analyzed pipeline result."
         ),
         "help_points": [
-            "This page converts the technical analysis into plainer language.",
-            "It is meant for review and handoff, not as stand-alone medical advice.",
-            "If the wording looks incomplete, rerun after updating the intake data.",
+            "This page summarizes phenoconversion risks, side effect tradeoffs, and insurance context.",
+            "It is meant for physician review before signing orders, not as stand-alone medical advice.",
+            "You can generate an optional patient handout from the same analysis.",
         ],
         "suggested_questions": [
             "What is this summary for?",
@@ -326,8 +313,48 @@ def insurance_screen(req: InsuranceScreenRequest) -> Dict[str, Any]:
     }
 
 
+class DrugProfilesRequest(BaseModel):
+    drugs: List[str] = Field(default_factory=list)
+    insurance_plan: Optional[InsurancePlanIn] = None
+
+
+@app.post("/api/v1/drug-profiles")
+def drug_profiles_endpoint(req: DrugProfilesRequest) -> Dict[str, Any]:
+    plan = req.insurance_plan.model_dump() if req.insurance_plan else None
+    return build_drug_profiles_response(
+        req.drugs,
+        insurance_plan=plan,
+        profiles_path=ROOT / "data" / "drug_side_effect_profiles.json",
+    )
+
+
+class ClinicianSummaryRequest(BaseModel):
+    patient_id: Optional[str] = None
+    patient_name: str = ""
+    pipeline_result: Dict[str, Any] = Field(default_factory=dict)
+    insurance_plan: Optional[InsurancePlanIn] = None
+    drug_profiles: Optional[List[Dict[str, Any]]] = None
+
+
+@app.post("/api/v1/clinician-summary")
+def clinician_summary_endpoint(req: ClinicianSummaryRequest) -> Dict[str, Any]:
+    plan = req.insurance_plan.model_dump() if req.insurance_plan else None
+    summary, ok, fails = generate_clinician_summary(
+        patient_name=req.patient_name or (req.patient_id or "Patient"),
+        patient_id=req.patient_id or "anonymous",
+        pipeline_result=req.pipeline_result,
+        insurance_plan=plan,
+        drug_profiles=req.drug_profiles,
+    )
+    out = clinician_summary_to_dict(summary)
+    out["validation_ok"] = ok
+    out["validation_warnings"] = fails
+    return out
+
+
 class SummaryRequest(BaseModel):
     pipeline_result: Dict[str, Any] = Field(default_factory=dict)
+    drug_profiles: Optional[List[Dict[str, Any]]] = None
 
 
 class HelpChatRequest(BaseModel):
@@ -466,6 +493,14 @@ def summary(req: SummaryRequest) -> Dict[str, str]:
 
             client = anthropic.Anthropic(api_key=api_key)
             payload = json.dumps(req.pipeline_result, indent=2)[:120_000]
+            extra = ""
+            if req.drug_profiles:
+                extra = (
+                    "\n\nInclude a section **Your Other Medications** after interaction findings, "
+                    "briefly describing each safe medication from drug_profiles (common side effects "
+                    "and coverage when present).\n"
+                    f"drug_profiles JSON:\n{json.dumps(req.drug_profiles, indent=2)[:40_000]}"
+                )
             msg = client.messages.create(
                 model="claude-sonnet-4-20250514",
                 max_tokens=2048,
@@ -482,6 +517,7 @@ def summary(req: SummaryRequest) -> Dict[str, str]:
                             "**What to Discuss with Your Doctor**\n\n"
                             "Base content only on this JSON:\n"
                             f"{payload}"
+                            f"{extra}"
                         ),
                     }
                 ],

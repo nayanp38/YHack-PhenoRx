@@ -1,12 +1,22 @@
 import { CheckCircle2 } from 'lucide-react'
 import { RISK_ORDER } from '../lib/constants'
-import type { InsuranceScreeningResult, InteractionResult, PipelineResult } from '../types'
+import type {
+  DrugProfile,
+  InsuranceScreeningResult,
+  InteractionResult,
+  MedicationInput,
+  PipelineResult,
+} from '../types'
 import { CostSummaryBanner } from './CostSummaryBanner'
 import { InteractionCard } from './InteractionCard'
+import { SafeDrugCard } from './SafeDrugCard'
+import { ViewHero } from './ViewHero'
 
 type Props = {
   pipeline: PipelineResult
   insurance: InsuranceScreeningResult | null
+  drugProfiles: DrugProfile[]
+  medications: MedicationInput[]
 }
 
 function sortInteractions(items: InteractionResult[]): InteractionResult[] {
@@ -33,21 +43,48 @@ function globalReplacementOptions(interactions: InteractionResult[]) {
   return [...byPerpetrator.values()]
 }
 
-export function RiskReport({ pipeline, insurance }: Props) {
+export function RiskReport({ pipeline, insurance, drugProfiles, medications }: Props) {
   const sorted = sortInteractions(pipeline.interactions || [])
   const replacementOptions = globalReplacementOptions(sorted)
+  const namedMedCount = medications.filter((m) => m.drug_name.trim()).length
+
   const hasCostData =
     insurance != null &&
     insurance.totalEstimatedMonthlyCost != null &&
     insurance.alternativeSavings.some((s) => s.monthlySavings != null)
 
-  if (sorted.length === 0) {
+  const profilesMissing = pipeline.meta?.side_effect_profiles_loaded === false
+
+  if (namedMedCount === 0) {
     return (
-      <div className="mx-auto max-w-[1280px] px-4 pb-16 pt-8">
-        <div className="rounded-xl border border-[var(--gray-200)] bg-white p-12 text-center shadow-[var(--card-shadow)]">
-          <CheckCircle2 className="mx-auto mb-4 h-16 w-16 text-[var(--safe-green)]" />
-          <p className="text-[20px] font-bold text-[var(--safe-green)]">No Interactions Detected</p>
-          <p className="mt-2 text-[var(--gray-500)]">
+      <div className="animate-fade-up">
+        <ViewHero title="Risk Report" subtitle="Interaction analysis across discharge medications" />
+        <div
+          className="rounded-[14px] border p-12 text-center"
+          style={{ background: 'var(--px-bg-card)', borderColor: 'var(--px-border)' }}
+        >
+          <p className="text-[16px] font-semibold text-[var(--px-text)]">
+            No medications to analyze. Add medications in the Patient Input view.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  const showFlaggedHeader = sorted.length > 0
+  const showSafeSection = drugProfiles.length > 0
+
+  if (!showFlaggedHeader && !showSafeSection) {
+    return (
+      <div className="animate-fade-up">
+        <ViewHero title="Risk Report" subtitle="Interaction analysis across discharge medications" />
+        <div
+          className="rounded-[14px] border p-12 text-center"
+          style={{ background: 'var(--px-bg-card)', borderColor: 'var(--px-border)' }}
+        >
+          <CheckCircle2 className="mx-auto mb-4 h-16 w-16" color="var(--px-accent)" />
+          <p className="text-[20px] font-bold text-[var(--px-accent)]">No Interactions Detected</p>
+          <p className="mt-2 text-[var(--px-text-secondary)]">
             All medications are compatible with this patient&apos;s pharmacogenomic profile.
           </p>
         </div>
@@ -55,37 +92,57 @@ export function RiskReport({ pipeline, insurance }: Props) {
     )
   }
 
-  const profilesMissing = pipeline.meta?.side_effect_profiles_loaded === false
+  const ixCount = sorted.length
 
   return (
-    <div className="mx-auto max-w-[1280px] px-4 pb-16 pt-8">
-      <h1 className="mb-8 text-[24px] font-bold text-[var(--navy)]">Integrated Risk Report</h1>
+    <div className="animate-fade-up">
+      <ViewHero
+        title="Risk Report"
+        subtitle={`${ixCount} interaction${ixCount !== 1 ? 's' : ''} flagged across discharge medications`}
+      />
+
       {profilesMissing && (
         <div
-          className="mb-6 rounded-xl border border-[var(--high-amber)] bg-[var(--boxed-warning-amber-bg)] px-4 py-3 text-sm text-[var(--gray-800)]"
+          className="mb-6 rounded-xl border px-4 py-3 text-sm"
+          style={{
+            borderColor: 'var(--px-high)',
+            background: 'var(--px-high-dim)',
+            color: 'var(--px-text)',
+          }}
           role="status"
         >
-          <p className="font-semibold text-[var(--boxed-warning-amber)]">Side effect data not loaded</p>
-          <p className="mt-1 text-[var(--gray-600)]">
+          <p className="font-semibold text-[var(--px-high)]">Side effect data not loaded</p>
+          <p className="mt-1 text-[var(--px-text-secondary)]">
             The server could not read{' '}
-            <code className="rounded bg-white/80 px-1 text-xs">drug_side_effect_profiles.json</code> at{' '}
+            <code className="rounded bg-black/20 px-1 text-xs">drug_side_effect_profiles.json</code> at{' '}
             <code className="break-all text-xs">{pipeline.meta?.side_effect_profiles_path ?? '—'}</code>.
             Run the API from the PhenoRx repo root so <code className="text-xs">data/</code> is on disk.
           </p>
         </div>
       )}
+
       {replacementOptions.length > 0 && (
-        <section className="mb-6 rounded-xl border border-[var(--gray-200)] bg-[var(--gray-50)] p-5 shadow-[var(--card-shadow)]">
-          <p className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--gray-500)]">
+        <section
+          className="mb-6 rounded-xl border p-5"
+          style={{ background: 'var(--px-bg-elevated)', borderColor: 'var(--px-border)' }}
+        >
+          <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--px-text-tertiary)]">
             Global Medication Optimization
           </p>
           <div className="mt-3 space-y-3">
             {replacementOptions.map((entry) => (
-              <div key={entry.drug} className="rounded-lg bg-white p-4">
-                <p className="text-sm font-semibold text-[var(--gray-800)]">
+              <div
+                key={entry.drug}
+                className="rounded-lg border px-4 py-3"
+                style={{
+                  background: 'var(--px-bg-card)',
+                  borderColor: 'var(--px-border)',
+                }}
+              >
+                <p className="text-sm font-semibold text-[var(--px-text)]">
                   {entry.drug} is driving multiple interactions in this regimen.
                 </p>
-                <p className="mt-1 text-sm text-[var(--gray-500)]">
+                <p className="mt-1 text-sm text-[var(--px-text-secondary)]">
                   Consider alternatives: {entry.alternatives.join(', ')}.
                 </p>
               </div>
@@ -94,18 +151,45 @@ export function RiskReport({ pipeline, insurance }: Props) {
         </section>
       )}
 
-      <div className="space-y-5">
-        {sorted.map((item) => (
-          <InteractionCard
-            key={`${item.drug_name}-${item.enzyme_name}`}
-            interaction={item}
-            affordability={pipeline.affordability}
-            insurance={insurance}
-            clinicalSapVerdictThreshold={pipeline.meta?.sap_verdict_threshold}
-          />
-        ))}
-      </div>
+      {showFlaggedHeader && (
+        <>
+          <h2 className="mb-4 font-display text-[20px] font-medium text-[var(--px-text)]">
+            Flagged Interactions
+          </h2>
+          <div className="flex flex-col gap-4">
+            {sorted.map((item) => (
+              <InteractionCard
+                key={`${item.drug_name}-${item.enzyme_name}`}
+                interaction={item}
+                affordability={pipeline.affordability}
+                insurance={insurance}
+                clinicalSapVerdictThreshold={pipeline.meta?.sap_verdict_threshold}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
       {hasCostData && insurance && <CostSummaryBanner insurance={insurance} />}
+
+      {showSafeSection && (
+        <>
+          {showFlaggedHeader && (
+            <hr className="my-8 border-[var(--px-border)]" />
+          )}
+          <h2 className="font-display text-[20px] font-medium text-[var(--px-text)]">
+            Medication Profiles
+          </h2>
+          <p className="mt-1 text-[14px] text-[var(--px-text-secondary)]">
+            Side effect and coverage information for medications with no detected interactions
+          </p>
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+            {drugProfiles.map((p) => (
+              <SafeDrugCard key={p.drug_name} profile={p} />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }
