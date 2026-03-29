@@ -182,6 +182,7 @@ class AnalyzeRequest(BaseModel):
     patient_id: Optional[str] = None
     genotypes: Dict[str, str]
     medications: List[MedicationIn]
+    plan: Optional["InsurancePlanIn"] = None
 
 
 @app.post("/api/v1/analyze")
@@ -191,6 +192,12 @@ def analyze(req: AnalyzeRequest) -> Dict[str, Any]:
         "genotypes": {k.upper(): v for k, v in req.genotypes.items()},
         "medications": [m.model_dump(exclude_none=True) for m in req.medications],
     }
+    if req.plan is not None:
+        patient["insurance"] = {
+            "plan_id": _plan_id_string(req.plan),
+            "plan_name": req.plan.planName,
+            "plan_type": "medicare",
+        }
     result = run_pipeline(
         patient,
         knowledge_base=_kb_data(),

@@ -25,6 +25,7 @@ export async function analyzePatient(payload: {
   patient_id?: string
   genotypes: Record<string, string>
   medications: Array<{ drug_name: string; dose_mg?: number; dosage?: string; indication?: string }>
+  plan?: InsurancePlan | null
 }): Promise<PipelineResult> {
   return json(
     await fetch('/api/v1/analyze', {

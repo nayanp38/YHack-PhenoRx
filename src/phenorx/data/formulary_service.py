@@ -74,6 +74,26 @@ _MOCK_FORMULARY: Dict[str, Dict[str, Any]] = {
     "glipizide":            {"tier": 1, "tier_label": "Generic",              "covered": True,  "prior_auth": False, "copay": 5.0},
 }
 
+# Plan-specific demo overrides so affordability rankings visibly change by insurer.
+# Keys use the same "<contract>-<plan>" format the API builds for selected plans.
+_PLAN_FORMULARY_OVERRIDES: Dict[str, Dict[str, Dict[str, Any]]] = {
+    "H0028-014": {
+        "atenolol": {"tier": 1, "tier_label": "Generic", "covered": True, "prior_auth": False, "copay": 5.0},
+        "bisoprolol": {"tier": 2, "tier_label": "Preferred Brand", "covered": True, "prior_auth": False, "copay": 20.0},
+        "pantoprazole": {"tier": 1, "tier_label": "Generic", "covered": True, "prior_auth": False, "copay": 5.0},
+    },
+    "S1030-001": {
+        "atenolol": {"tier": 2, "tier_label": "Preferred Brand", "covered": True, "prior_auth": False, "copay": 20.0},
+        "bisoprolol": {"tier": 1, "tier_label": "Generic", "covered": True, "prior_auth": False, "copay": 5.0},
+        "pantoprazole": {"tier": 2, "tier_label": "Preferred Brand", "covered": True, "prior_auth": False, "copay": 20.0},
+    },
+    "Aetna-RX-Saver": {
+        "atenolol": {"tier": 1, "tier_label": "Generic", "covered": True, "prior_auth": False, "copay": 5.0},
+        "bisoprolol": {"tier": 1, "tier_label": "Generic", "covered": True, "prior_auth": False, "copay": 7.0},
+        "pantoprazole": {"tier": 1, "tier_label": "Generic", "covered": True, "prior_auth": False, "copay": 5.0},
+    },
+}
+
 
 class FormularyService(ABC):
     @abstractmethod
@@ -90,7 +110,8 @@ class MockFormularyService(FormularyService):
 
     def lookup(self, drug_name: str, plan_id: Optional[str] = None) -> FormularyEntry:
         key = drug_name.strip().lower()
-        entry = _MOCK_FORMULARY.get(key)
+        plan_overrides = _PLAN_FORMULARY_OVERRIDES.get(plan_id or "", {})
+        entry = plan_overrides.get(key) or _MOCK_FORMULARY.get(key)
         if entry is None:
             return FormularyEntry(
                 drug_name=drug_name,
