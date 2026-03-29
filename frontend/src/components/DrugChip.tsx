@@ -15,7 +15,7 @@ type Props = {
   severityVerdict?: SeverityVerdict
   sideEffectData?: AlternativeComparison
   flaggedDrugName?: string
-  flaggedDrugWsi?: number
+  flaggedDrugSap?: number
   flaggedTop3?: AdverseEvent[]
 }
 
@@ -28,7 +28,7 @@ export function DrugChip({
   severityVerdict,
   sideEffectData,
   flaggedDrugName,
-  flaggedDrugWsi,
+  flaggedDrugSap,
   flaggedTop3,
 }: Props) {
   const display = (drugName ?? label ?? '').trim()
@@ -48,7 +48,7 @@ export function DrugChip({
   const canTooltip = Boolean(
     sideEffectData &&
       flaggedDrugName != null &&
-      flaggedDrugWsi != null &&
+      flaggedDrugSap != null &&
       flaggedTop3 != null
   )
 
@@ -84,7 +84,7 @@ export function DrugChip({
             {showTip && canTooltip && sideEffectData && flaggedTop3 && (
               <SideEffectTooltip
                 flaggedDrugName={flaggedDrugName!}
-                flaggedDrugWsi={flaggedDrugWsi!}
+                flaggedDrugSap={flaggedDrugSap!}
                 flaggedTop3={flaggedTop3}
                 alternativeComparison={sideEffectData}
               />

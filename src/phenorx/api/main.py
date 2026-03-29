@@ -85,7 +85,12 @@ def analyze(req: AnalyzeRequest) -> Dict[str, Any]:
         "genotypes": {k.upper(): v for k, v in req.genotypes.items()},
         "medications": [m.model_dump(exclude_none=True) for m in req.medications],
     }
-    return run_pipeline(patient, knowledge_base=_kb_data(), allele_function_map=_allele_data())
+    return run_pipeline(
+        patient,
+        knowledge_base=_kb_data(),
+        allele_function_map=_allele_data(),
+        drug_side_effect_profiles_path=ROOT / "data" / "drug_side_effect_profiles.json",
+    )
 
 
 class InsurancePlanIn(BaseModel):
@@ -145,7 +150,10 @@ def insurance_screen(req: InsuranceScreenRequest) -> Dict[str, Any]:
             "insurance": insurance,
         }
         pipeline_result = run_pipeline(
-            patient, knowledge_base=_kb_data(), allele_function_map=_allele_data()
+            patient,
+            knowledge_base=_kb_data(),
+            allele_function_map=_allele_data(),
+            drug_side_effect_profiles_path=ROOT / "data" / "drug_side_effect_profiles.json",
         )
     svc = get_service_for_patient(insurance)
 

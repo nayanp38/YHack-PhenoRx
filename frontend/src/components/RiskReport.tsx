@@ -55,9 +55,25 @@ export function RiskReport({ pipeline, insurance }: Props) {
     )
   }
 
+  const profilesMissing = pipeline.meta?.side_effect_profiles_loaded === false
+
   return (
     <div className="mx-auto max-w-[1280px] px-4 pb-16 pt-8">
       <h1 className="mb-8 text-[24px] font-bold text-[var(--navy)]">Integrated Risk Report</h1>
+      {profilesMissing && (
+        <div
+          className="mb-6 rounded-xl border border-[var(--high-amber)] bg-[var(--boxed-warning-amber-bg)] px-4 py-3 text-sm text-[var(--gray-800)]"
+          role="status"
+        >
+          <p className="font-semibold text-[var(--boxed-warning-amber)]">Side effect data not loaded</p>
+          <p className="mt-1 text-[var(--gray-600)]">
+            The server could not read{' '}
+            <code className="rounded bg-white/80 px-1 text-xs">drug_side_effect_profiles.json</code> at{' '}
+            <code className="break-all text-xs">{pipeline.meta?.side_effect_profiles_path ?? '—'}</code>.
+            Run the API from the PhenoRx repo root so <code className="text-xs">data/</code> is on disk.
+          </p>
+        </div>
+      )}
       {replacementOptions.length > 0 && (
         <section className="mb-6 rounded-xl border border-[var(--gray-200)] bg-[var(--gray-50)] p-5 shadow-[var(--card-shadow)]">
           <p className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--gray-500)]">
@@ -85,6 +101,7 @@ export function RiskReport({ pipeline, insurance }: Props) {
             interaction={item}
             affordability={pipeline.affordability}
             insurance={insurance}
+            clinicalSapVerdictThreshold={pipeline.meta?.sap_verdict_threshold}
           />
         ))}
       </div>

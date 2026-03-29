@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -9,7 +10,11 @@ from .pass1_classify import classify_medications
 from .pass2_phenoconvert import compute_effective_activity
 from .pass3_evaluate import evaluate_drug_risks
 from .pass4_affordability import rank_alternatives_by_affordability
-from .side_effect_severity import attach_side_effect_comparison, load_drug_profiles
+from .side_effect_severity import (
+    SAP_VERDICT_THRESHOLD,
+    attach_side_effect_comparison,
+    load_drug_profiles,
+)
 from .models import AffordabilityResult, EnzymeEffectiveState, EnzymeBaseline, DrugClassificationCell, InteractionResult, RankedAlternative
 from phenorx.data.knowledge_base_loader import load_knowledge_base
 
@@ -126,9 +131,7 @@ def run_pipeline(
 
     interactions_json = [_interaction_to_json(r) for r in interactions]
 
-    sep_path = drug_side_effect_profiles_path or (
-        Path(__file__).resolve().parents[3] / "data" / "drug_side_effect_profiles.json"
-    )
+    sep_path = drug_side_effect_profiles_path or _default_side_effect_profiles_path()
     _profiles = load_drug_profiles(sep_path)
     attach_side_effect_comparison(interactions_json, _profiles)
 
@@ -140,6 +143,12 @@ def run_pipeline(
         "drug_matrix": drug_matrix_json,
         "interactions": interactions_json,
         "affordability": affordability_json,
+        "meta": {
+            "side_effect_profiles_path": str(sep_path),
+            "side_effect_profiles_loaded": bool(_profiles),
+            "sap_verdict_threshold": SAP_VERDICT_THRESHOLD,
+            "side_effect_model": "SAP_v3",
+        },
     }
 
 
@@ -155,3 +164,27 @@ def load_default_allele_map(processed_dir: str | Path) -> Optional[Dict[str, Dic
 def load_default_knowledge_base(repo_root: str | Path) -> Dict[Any, Any]:
     kb_path = Path(repo_root) / "data" / "knowledge_base.json"
     return load_knowledge_base(kb_path)
+
+
+def _default_side_effect_profiles_path() -> Path:
+    """Resolve bundled JSON whether the package runs from source tree or site-packages."""
+    env_dir = os.environ.get("PHENORX_DATA_DIR") or os.environ.get("PHENORX_REPO_ROOT")
+    if env_dir:
+        p = Path(env_dir) / "drug_side_effect_profiles.json"
+        if p.is_file():
+            return p
+        p = Path(env_dir) / "data" / "drug_side_effect_profiles.json"
+        if p.is_file():
+            return p
+    here = Path(__file__).resolve()
+    for i in range(8):
+        try:
+            cand = here.parents[i] / "data" / "drug_side_effect_profiles.json"
+        except IndexError:
+            break
+        if cand.is_file():
+            return cand
+    cwd = Path.cwd() / "data" / "drug_side_effect_profiles.json"
+    if cwd.is_file():
+        return cwd
+    return here.parents[3] / "data" / "drug_side_effect_profiles.json"

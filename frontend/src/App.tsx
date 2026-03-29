@@ -69,7 +69,9 @@ export default function App() {
       })
       setPipelineResult(pipeline)
       setHasAnalyzed(true)
-      setActiveView('enzyme')
+      // Side effect profile (Section D) lives on Integrated Risk Report — open it when there are findings.
+      const nInteractions = pipeline.interactions?.length ?? 0
+      setActiveView(nInteractions > 0 ? 'risk' : 'enzyme')
 
       const [ins, summary] = await Promise.all([
         payload.plan != null
