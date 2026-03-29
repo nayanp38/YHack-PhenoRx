@@ -16,6 +16,17 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+
+# Repo root: .../src/phenorx/api/main.py -> parents[3]
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+try:
+    from dotenv import load_dotenv
+
+    # Load once at import so GEMINI_API_KEY etc. are available to all routes.
+    load_dotenv(_REPO_ROOT / ".env")
+    load_dotenv(_REPO_ROOT / ".env.local", override=False)
+except ImportError:
+    pass
 from typing import Any, Dict, List, Optional
 
 import base64
@@ -493,13 +504,14 @@ def _fallback_summary(data: Dict[str, Any]) -> str:
 
 @app.post("/api/v1/summary")
 def summary(req: SummaryRequest) -> Dict[str, str]:
+    """Patient handout text; uses GEMINI_API_KEY (same stack as help-chat / OCR)."""
     text: Optional[str] = None
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY")
     if api_key:
         try:
-            import anthropic
+            from google import genai
 
-            client = anthropic.Anthropic(api_key=api_key)
+            client = genai.Client(api_key=api_key)
             payload = json.dumps(req.pipeline_result, indent=2)[:120_000]
             extra = ""
             if req.drug_profiles:
@@ -509,30 +521,23 @@ def summary(req: SummaryRequest) -> Dict[str, str]:
                     "and coverage when present).\n"
                     f"drug_profiles JSON:\n{json.dumps(req.drug_profiles, indent=2)[:40_000]}"
                 )
-            msg = client.messages.create(
-                model="claude-sonnet-4-20250514",
-                max_tokens=2048,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": (
-                            "Write a patient-facing discharge medication summary in plain language. "
-                            "Use exactly these Markdown sections with bold headers:\n"
-                            "**Your Medications** — list each medication with its dosage and "
-                            "indication/reason for taking it (from the medications_input field)\n\n"
-                            "**What We Found**\n\n"
-                            "**What This Means for You**\n\n"
-                            "**What to Discuss with Your Doctor**\n\n"
-                            "Base content only on this JSON:\n"
-                            f"{payload}"
-                            f"{extra}"
-                        ),
-                    }
-                ],
+            prompt = (
+                "Write a patient-facing discharge medication summary in plain language. "
+                "Use exactly these Markdown sections with bold headers:\n"
+                "**Your Medications** — list each medication with its dosage and "
+                "indication/reason for taking it (from the medications_input field)\n\n"
+                "**What We Found**\n\n"
+                "**What This Means for You**\n\n"
+                "**What to Discuss with Your Doctor**\n\n"
+                "Base content only on this JSON:\n"
+                f"{payload}"
+                f"{extra}"
             )
-            block = msg.content[0]
-            if block.type == "text":
-                text = block.text
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt,
+            )
+            text = (response.text or "").strip() or None
         except Exception:
             text = None
     if not text:
@@ -567,7 +572,8 @@ def help_chat(req: HelpChatRequest) -> Dict[str, Any]:
                 ),
             )
             answer = (response.text or "").strip() or None
-        except Exception:
+        except Exception as e:
+            print(e)
             answer = None
 
     if not answer:
