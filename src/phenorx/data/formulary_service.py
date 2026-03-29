@@ -20,6 +20,8 @@ _MOCK_FORMULARY: Dict[str, Dict[str, Any]] = {
     "bisoprolol":           {"tier": 1, "tier_label": "Generic",              "covered": True,  "prior_auth": False, "copay": 7.0},
     "carvedilol":           {"tier": 1, "tier_label": "Generic",              "covered": True,  "prior_auth": False, "copay": 7.0},
     "nebivolol":            {"tier": 2, "tier_label": "Preferred Brand",      "covered": True,  "prior_auth": False, "copay": 30.0},
+    # --- Calcium channel blockers ---
+    "amlodipine":           {"tier": 1, "tier_label": "Generic",              "covered": True,  "prior_auth": False, "copay": 5.0},
     # --- ACE inhibitors ---
     "lisinopril":           {"tier": 1, "tier_label": "Generic",              "covered": True,  "prior_auth": False, "copay": 5.0},
     "enalapril":            {"tier": 1, "tier_label": "Generic",              "covered": True,  "prior_auth": False, "copay": 5.0},
@@ -104,6 +106,16 @@ class MockFormularyService(FormularyService):
             tier_label=entry["tier_label"],
             prior_auth_required=entry["prior_auth"],
         )
+
+
+def mock_estimated_monthly_cost(drug_name: str) -> Optional[float]:
+    """Approximate monthly copay from the built-in mock formulary (demo / offline)."""
+    key = drug_name.strip().lower()
+    entry = _MOCK_FORMULARY.get(key)
+    if not entry:
+        return None
+    copay = entry.get("copay")
+    return float(copay) if copay is not None else None
 
 
 def get_default_service() -> FormularyService:

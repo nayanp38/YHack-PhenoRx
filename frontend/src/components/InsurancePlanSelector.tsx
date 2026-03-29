@@ -3,6 +3,9 @@ import { useEffect, useState } from 'react'
 import { fetchPlans } from '../lib/api'
 import type { InsurancePlan } from '../types'
 
+const selectClass =
+  'w-full rounded-lg border border-[var(--px-border)] bg-[rgba(255,255,255,0.02)] px-3 py-2 text-sm text-[var(--px-text)] outline-none focus:border-[var(--px-border-active)]'
+
 type Props = {
   value: InsurancePlan | null
   onChange: (p: InsurancePlan | null) => void
@@ -18,13 +21,18 @@ export function InsurancePlanSelector({ value, onChange }: Props) {
   }, [])
 
   return (
-    <div className="rounded-xl border border-[var(--gray-200)] bg-white p-6 shadow-[var(--card-shadow)]">
-      <h2 className="mb-4 flex items-center gap-2 text-[18px] font-semibold text-[var(--gray-800)]">
-        <Shield className="h-5 w-5 text-[var(--navy)]" aria-hidden />
-        Medicare Part D Plan
-      </h2>
+    <div
+      className="rounded-xl border p-6"
+      style={{ background: 'var(--px-bg-card)', borderColor: 'var(--px-border)' }}
+    >
+      <div className="mb-4 flex items-center gap-2">
+        <Shield size={16} color="var(--px-accent)" aria-hidden />
+        <h3 className="font-display text-[18px] font-medium text-[var(--px-text)]">
+          Medicare Part D Plan
+        </h3>
+      </div>
       <select
-        className="w-full rounded-lg border border-[var(--gray-200)] px-3 py-2 text-sm"
+        className={selectClass}
         value={value ? `${value.contractId}|${value.planId}` : ''}
         onChange={(e) => {
           const v = e.target.value
@@ -45,7 +53,7 @@ export function InsurancePlanSelector({ value, onChange }: Props) {
         ))}
       </select>
       {!value && (
-        <p className="mt-3 text-sm italic text-[var(--gray-500)]">
+        <p className="mt-3 text-sm italic text-[var(--px-text-tertiary)]">
           Optional. Skip to analyze without insurance data.
         </p>
       )}

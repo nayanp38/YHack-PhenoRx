@@ -1,5 +1,7 @@
 import type {
   ActiveView,
+  ClinicianSummary,
+  DrugProfile,
   HelpChatReply,
   InsurancePlan,
   InsuranceScreeningResult,
@@ -51,15 +53,61 @@ export async function screenInsurance(
   )
 }
 
-export async function fetchSummary(pipelineResult: PipelineResult): Promise<string> {
+export async function fetchSummary(
+  pipelineResult: PipelineResult,
+  drugProfiles?: DrugProfile[]
+): Promise<string> {
   const data = await json(
     await fetch('/api/v1/summary', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pipeline_result: pipelineResult }),
+      body: JSON.stringify({
+        pipeline_result: pipelineResult,
+        ...(drugProfiles && drugProfiles.length > 0 ? { drug_profiles: drugProfiles } : {}),
+      }),
     })
   )
   return data.summary as string
+}
+
+export async function fetchDrugProfiles(
+  drugs: string[],
+  plan: InsurancePlan | null
+): Promise<DrugProfile[]> {
+  const body: Record<string, unknown> = { drugs }
+  if (plan) {
+    body.insurance_plan = plan
+  }
+  const data = await json(
+    await fetch('/api/v1/drug-profiles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+  )
+  return data.drug_profiles as DrugProfile[]
+}
+
+export async function fetchClinicianSummary(payload: {
+  patient_id?: string
+  patient_name: string
+  pipeline_result: PipelineResult
+  insurance_plan?: InsurancePlan | null
+  drug_profiles?: DrugProfile[]
+}): Promise<ClinicianSummary> {
+  return json(
+    await fetch('/api/v1/clinician-summary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        patient_id: payload.patient_id,
+        patient_name: payload.patient_name,
+        pipeline_result: payload.pipeline_result,
+        insurance_plan: payload.insurance_plan ?? undefined,
+        drug_profiles: payload.drug_profiles,
+      }),
+    })
+  ) as Promise<ClinicianSummary>
 }
 
 export async function previewGenotype(enzyme: string, allele1: string, allele2: string) {

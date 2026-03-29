@@ -54,7 +54,7 @@ export function DrugChip({
 
   return (
     <span
-      className="group inline-flex cursor-default items-center gap-2 rounded-[20px] border border-[var(--gray-200)] bg-white px-4 py-1 text-sm shadow-sm transition-transform duration-200 hover:scale-[1.03] hover:shadow-md"
+      className="group inline-flex cursor-default items-center gap-2 rounded-[20px] border border-[var(--px-border)] bg-[rgba(255,255,255,0.04)] px-4 py-1 text-sm text-[var(--px-text)] shadow-sm transition-transform duration-200 hover:scale-[1.03] hover:bg-white/[0.06]"
       style={
         accent === 'perp'
           ? { borderLeftWidth: 4, borderLeftColor: 'var(--insurance-purple)' }
@@ -64,7 +64,7 @@ export function DrugChip({
       {display}
       {sub != null && (
         <span
-          className={`text-xs text-[var(--gray-800)] transition-opacity group-hover:opacity-100 ${showCostDimmed ? 'opacity-70' : ''}`}
+          className={`text-xs text-[var(--px-text-secondary)] transition-opacity group-hover:opacity-100 ${showCostDimmed ? 'opacity-70' : ''}`}
         >
           {sub}
         </span>
@@ -75,7 +75,7 @@ export function DrugChip({
             style={{
               width: '1px',
               height: '16px',
-              backgroundColor: 'var(--gray-200)',
+              backgroundColor: 'var(--px-border)',
               margin: '0 8px',
             }}
           />

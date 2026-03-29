@@ -12,10 +12,10 @@ const VERDICT_STYLES: Record<
   SeverityVerdict,
   { bg: string; text: string; label: string; Icon: typeof TrendingDown | typeof HelpCircle | null }
 > = {
-  BETTER: { bg: '#F0FDF4', text: '#16A34A', label: 'Better Side Effect Profile', Icon: TrendingUp },
-  EQUIVALENT: { bg: '#F3F4F6', text: '#6B7280', label: 'Similar Side Effect Profile', Icon: null },
-  WORSE: { bg: '#FEF2F2', text: '#DC2626', label: 'Worse Side Effect Profile', Icon: TrendingDown },
-  DATA_UNAVAILABLE: { bg: '#F8FAFC', text: '#94A3B8', label: 'No Data', Icon: HelpCircle },
+  BETTER: { bg: 'rgba(52,211,153,0.15)', text: '#34d399', label: 'Better Side Effect Profile', Icon: TrendingUp },
+  EQUIVALENT: { bg: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.55)', label: 'Similar Side Effect Profile', Icon: null },
+  WORSE: { bg: 'rgba(239,68,68,0.15)', text: '#f87171', label: 'Worse Side Effect Profile', Icon: TrendingDown },
+  DATA_UNAVAILABLE: { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.35)', label: 'No Data', Icon: HelpCircle },
 }
 
 export function SeverityBadge({ verdict, size = 'md' }: SeverityBadgeProps) {

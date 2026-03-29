@@ -1,6 +1,6 @@
 /** PhenoRx dashboard types (aligned with API + technical spec §9). */
 
-export type ActiveView = 'intake' | 'enzyme' | 'risk' | 'matrix' | 'summary'
+export type ActiveView = 'intake' | 'enzyme' | 'risk' | 'summary'
 
 export interface HelpChatReply {
   page: ActiveView
@@ -192,4 +192,49 @@ export interface DemoPatient {
   genotypes: Record<string, string>
   medications: Array<{ drug_name: string; dose_mg?: number; indication?: string }>
   insurance?: { plan_id: string; plan_name: string; plan_type: string }
+}
+
+/** Safe-drug profile row from POST /api/v1/drug-profiles */
+export interface AdverseEventSummary {
+  meddra_pt: string
+  frequency_pct: number | null
+  frequency_bucket: string
+  ctcae_typical_grade: number
+}
+
+export interface DrugProfile {
+  drug_name: string
+  side_effect_profile: {
+    weighted_severity_index: number | null
+    boxed_warning_flag: boolean
+    boxed_warning_text: string | null
+    top_3_severe_events: AdverseEventSummary[]
+    common_side_effects: AdverseEventSummary[]
+    data_source: string | null
+  }
+  insurance_coverage: DrugCoverage | null
+}
+
+export interface PhenoconversionSummaryAlert {
+  drug_name: string
+  failure_type: string
+  mechanism_explanation: string
+  recommendation: string
+}
+
+export interface SideEffectFlagItem {
+  original_drug: string
+  alternative_drug: string
+  headline: string
+  detail: string
+  boxed_warning: boolean
+  new_severe_events: Array<{ meddra_pt: string; grade?: number }>
+}
+
+export interface ClinicianSummary {
+  phenoconversion_alerts: PhenoconversionSummaryAlert[]
+  side_effect_flags: SideEffectFlagItem[]
+  insurance_statement: string | null
+  validation_ok?: boolean
+  validation_warnings?: string[]
 }

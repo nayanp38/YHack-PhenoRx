@@ -2,6 +2,9 @@ import { X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { MedicationInput } from '../types'
 
+const fieldClass =
+  'rounded-lg border border-[var(--px-border)] bg-[rgba(255,255,255,0.02)] px-3 py-2 text-sm text-[var(--px-text)] placeholder:text-[var(--px-text-tertiary)] outline-none focus:border-[var(--px-border-active)]'
+
 type Props = {
   med: MedicationInput
   index: number
@@ -24,10 +27,10 @@ export function MedicationRow({ med, index, drugNames, onChange, onRemove }: Pro
   }, [drugNames, q])
 
   return (
-    <div className="mb-3 flex flex-wrap items-start gap-2">
+    <div className="mb-2 flex flex-wrap items-start gap-2">
       <div className="relative min-w-[200px] flex-[2]">
         <input
-          className="w-full rounded-lg border border-[var(--gray-200)] px-3 py-2 text-sm"
+          className={`w-full ${fieldClass}`}
           placeholder="Drug name"
           value={q}
           onChange={(e) => {
@@ -41,12 +44,18 @@ export function MedicationRow({ med, index, drugNames, onChange, onRemove }: Pro
           }}
         />
         {open && suggestions.length > 0 && (
-          <ul className="absolute left-0 right-0 top-full z-20 mt-1 max-h-40 overflow-auto rounded-lg border border-[var(--gray-200)] bg-white shadow-md">
+          <ul
+            className="absolute left-0 right-0 top-full z-20 mt-1 max-h-40 overflow-auto rounded-lg border shadow-lg"
+            style={{
+              background: 'rgba(20,20,22,0.98)',
+              borderColor: 'var(--px-border)',
+            }}
+          >
             {suggestions.map((d) => (
               <li key={d}>
                 <button
                   type="button"
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-[var(--gray-50)]"
+                  className="w-full px-3 py-2 text-left text-sm text-[var(--px-text)] hover:bg-white/[0.06]"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
                     setQ(d)
@@ -64,21 +73,27 @@ export function MedicationRow({ med, index, drugNames, onChange, onRemove }: Pro
       </div>
       <input
         id={`dose-${index}`}
-        type="text"
-        className="w-full min-w-[80px] flex-1 rounded-lg border border-[var(--gray-200)] px-3 py-2 text-sm md:max-w-[160px]"
-        placeholder="Dosage"
-        value={med.dosage}
-        onChange={(e) => onChange(index, { ...med, dosage: e.target.value })}
+        type="number"
+        className={`min-w-[80px] flex-1 md:max-w-[120px] ${fieldClass}`}
+        placeholder="mg"
+        value={med.dose_mg === '' ? '' : med.dose_mg}
+        onChange={(e) => {
+          const v = e.target.value
+          onChange(index, {
+            ...med,
+            dose_mg: v === '' ? '' : Number(v),
+          })
+        }}
       />
       <input
-        className="min-w-[120px] flex-1 rounded-lg border border-[var(--gray-200)] px-3 py-2 text-sm"
+        className={`min-w-[120px] flex-1 ${fieldClass}`}
         placeholder="indication"
         value={med.indication}
         onChange={(e) => onChange(index, { ...med, indication: e.target.value })}
       />
       <button
         type="button"
-        className="shrink-0 rounded-lg p-2 text-[var(--critical-red)] hover:bg-[var(--critical-red-bg)]"
+        className="shrink-0 rounded-lg p-2 text-[var(--px-critical)] hover:bg-[var(--px-critical-dim)]"
         aria-label="Remove medication"
         onClick={() => onRemove(index)}
       >

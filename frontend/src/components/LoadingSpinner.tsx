@@ -1,11 +1,26 @@
-export function LoadingSpinner({ label = 'Loading…' }: { label?: string }) {
+export function LoadingSpinner({
+  label = 'Running phenoconversion engine…',
+  sub = 'Analyzing drug-drug-gene interactions',
+}: {
+  label?: string
+  sub?: string
+}) {
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[rgba(15,26,46,0.45)] backdrop-blur-[2px]">
+    <div
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-center"
+      style={{ background: 'rgba(10,10,11,0.9)', backdropFilter: 'blur(8px)' }}
+    >
       <div
-        className="h-12 w-12 animate-spin rounded-full border-4 border-white/30 border-t-white"
+        className="h-12 w-12 rounded-full border-2"
+        style={{
+          borderColor: 'var(--px-border)',
+          borderTopColor: 'var(--px-accent)',
+          animation: 'spin 0.8s linear infinite',
+        }}
         aria-hidden
       />
-      <p className="mt-4 text-[16px] font-semibold text-white">{label}</p>
+      <p className="mt-5 font-display text-[18px] italic text-[var(--px-text)]">{label}</p>
+      <p className="mt-1.5 text-[12px] text-[var(--px-text-secondary)]">{sub}</p>
     </div>
   )
 }

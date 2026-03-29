@@ -1,4 +1,3 @@
-import { ArrowRight } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { MAX_ACTIVITY_BY_ENZYME } from '../lib/constants'
 import { easeOutCubic } from '../lib/easing'
@@ -13,15 +12,14 @@ type Props = {
   startDelayMs: number
 }
 
+/** Thin bar + centered effective score (reference PhenoRx gauge styling). */
 export function ActivityGauge({ enzyme, row, startDelayMs }: Props) {
   const max = MAX_ACTIVITY_BY_ENZYME[enzyme] ?? 2
   const baseline = row.baseline_activity_score
   const effective = row.effective_activity_score
-  const decreased = effective < baseline - 1e-6
 
   const [displayEffective, setDisplayEffective] = useState(baseline)
   const [barFrac, setBarFrac] = useState(baseline / max)
-  const [flash, setFlash] = useState(false)
   const raf = useRef<number | null>(null)
 
   useEffect(() => {
@@ -44,10 +42,6 @@ export function ActivityGauge({ enzyme, row, startDelayMs }: Props) {
       const v = baseline + (effective - baseline) * eased
       setDisplayEffective(Number(v.toFixed(4)))
       setBarFrac((baseline + (effective - baseline) * eased) / max)
-      if (t >= 1 && effective === 0 && baseline > 0) {
-        setFlash(true)
-        setTimeout(() => setFlash(false), 400)
-      }
       if (t < 1) raf.current = requestAnimationFrame(tick)
     }
     raf.current = requestAnimationFrame(tick)
@@ -56,43 +50,36 @@ export function ActivityGauge({ enzyme, row, startDelayMs }: Props) {
     }
   }, [baseline, effective, max, startDelayMs])
 
-  const baselinePct = Math.min(100, (baseline / max) * 100)
-  const effectivePct = Math.min(100, barFrac * 100)
+  const pct = Math.max(0, Math.min(100, barFrac * 100))
+  const color =
+    displayEffective <= 0
+      ? 'var(--px-critical)'
+      : displayEffective < max * 0.5
+        ? 'var(--px-high)'
+        : 'var(--px-accent)'
 
   return (
-    <div className="flex min-w-0 flex-[55] flex-col justify-center px-2">
-      <div className="mb-1 flex items-center justify-between text-[12px] text-[var(--gray-500)]">
-        <span>
-          Baseline:{' '}
-          <span className="font-mono text-[13px] font-medium text-[var(--gray-800)]">
-            {baseline.toFixed(1)}
-          </span>
+    <div className="w-full">
+      <div className="mb-1.5 flex justify-between font-sans text-[12px] text-[var(--px-text-secondary)]">
+        <span>0</span>
+        <span
+          className="font-display text-[18px] font-semibold"
+          style={{ color }}
+        >
+          {displayEffective.toFixed(1)}
         </span>
-        <span className="flex items-center gap-1">
-          {decreased && <ArrowRight className="h-3 w-3" />}
-          <span>
-            Effective:{' '}
-            <span className="font-mono text-[13px] font-medium text-[var(--gray-800)]">
-              {displayEffective.toFixed(1)}
-            </span>
-          </span>
-        </span>
+        <span>{max}</span>
       </div>
       <div
-        className="relative h-8 w-full overflow-hidden rounded-md transition-colors duration-300"
-        style={{
-          background: flash ? 'rgba(220, 38, 38, 0.5)' : 'var(--gray-100)',
-        }}
+        className="h-1.5 w-full overflow-hidden rounded-sm"
+        style={{ background: 'rgba(255,255,255,0.06)' }}
       >
         <div
-          className="absolute left-0 top-0 h-full rounded-md bg-[var(--safe-green)] opacity-90"
-          style={{ width: `${baselinePct}%` }}
-        />
-        <div
-          className="absolute left-0 top-0 h-full rounded-md"
+          className="h-full rounded-sm transition-[width] duration-300"
           style={{
-            width: `${effectivePct}%`,
-            background: decreased ? 'var(--critical-red)' : 'var(--safe-green)',
+            width: `${pct}%`,
+            background: `linear-gradient(90deg, ${color}, ${color}cc)`,
+            boxShadow: `0 0 12px ${color}44`,
           }}
         />
       </div>

@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   analyzePatient,
+  fetchClinicianSummary,
+  fetchDrugProfiles,
   fetchPlans,
   fetchSummary,
   screenInsurance,
 } from './lib/api'
 import type {
   ActiveView,
+  ClinicianSummary,
   DemoPatient,
+  DrugProfile,
   InsurancePlan,
   InsuranceScreeningResult,
   MedicationInput,
@@ -18,12 +23,11 @@ import { NavBar } from './components/NavBar'
 import { PatientIntake, type IntakePayload } from './components/PatientIntake'
 import { EnzymeDashboard } from './components/EnzymeDashboard'
 import { RiskReport } from './components/RiskReport'
-import { DrugMatrix } from './components/DrugMatrix'
 import { DischargeSummary } from './components/DischargeSummary'
 import { ViewStepper } from './components/ViewStepper'
 import { HelpChat } from './components/HelpChat'
 
-const VIEW_ORDER: ActiveView[] = ['intake', 'enzyme', 'risk', 'matrix', 'summary']
+const VIEW_ORDER: ActiveView[] = ['intake', 'enzyme', 'risk', 'summary']
 
 function buildGenotypes(g: Record<string, string>): Record<string, string> {
   return {
@@ -31,6 +35,17 @@ function buildGenotypes(g: Record<string, string>): Record<string, string> {
     CYP2C19: g.CYP2C19 || '*1/*1',
     CYP2C9: g.CYP2C9 || '*1/*1',
   }
+}
+
+function safeDrugNames(
+  medications: Array<{ drug_name: string }>,
+  pipeline: PipelineResult
+): string[] {
+  const names = medications.map((m) => m.drug_name.trim()).filter(Boolean)
+  const inter = pipeline.interactions || []
+  return names.filter(
+    (name) => !inter.some((i) => i.drug_name.toLowerCase() === name.toLowerCase())
+  )
 }
 
 export default function App() {
@@ -50,7 +65,10 @@ export default function App() {
 
   const [pipelineResult, setPipelineResult] = useState<PipelineResult | null>(null)
   const [insuranceResult, setInsuranceResult] = useState<InsuranceScreeningResult | null>(null)
-  const [summaryText, setSummaryText] = useState('')
+  const [drugProfiles, setDrugProfiles] = useState<DrugProfile[]>([])
+  const [clinicianSummary, setClinicianSummary] = useState<ClinicianSummary | null>(null)
+  const [patientHandoutText, setPatientHandoutText] = useState<string | null>(null)
+  const [patientHandoutLoading, setPatientHandoutLoading] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   const runAnalyze = useCallback(async (payload: IntakePayload) => {
@@ -70,11 +88,11 @@ export default function App() {
       })
       setPipelineResult(pipeline)
       setHasAnalyzed(true)
-      // Side effect profile (Section D) lives on Integrated Risk Report — open it when there are findings.
-      const nInteractions = pipeline.interactions?.length ?? 0
-      setActiveView(nInteractions > 0 ? 'risk' : 'enzyme')
+      setActiveView('risk')
 
-      const [ins, summary] = await Promise.all([
+      const safe = safeDrugNames(meds, pipeline)
+
+      const [ins, profiles] = await Promise.all([
         payload.plan != null
           ? screenInsurance({
               patient_id: payload.patient_id,
@@ -84,10 +102,22 @@ export default function App() {
               pipeline_result: pipeline,
             })
           : Promise.resolve(null),
-        fetchSummary(pipeline),
+        safe.length > 0
+          ? fetchDrugProfiles(safe, payload.plan ?? null)
+          : Promise.resolve([]),
       ])
       setInsuranceResult(ins)
-      setSummaryText(summary)
+      setDrugProfiles(profiles)
+
+      const clinician = await fetchClinicianSummary({
+        patient_id: payload.patient_id,
+        patient_name: payload.patient_id || 'Patient',
+        pipeline_result: pipeline,
+        insurance_plan: payload.plan ?? null,
+        drug_profiles: profiles,
+      })
+      setClinicianSummary(clinician)
+      setPatientHandoutText(null)
     } catch (e) {
       console.error(e)
       alert(e instanceof Error ? e.message : 'Analysis failed')
@@ -95,6 +125,19 @@ export default function App() {
       setIsLoading(false)
     }
   }, [])
+
+  const handleRequestPatientHandout = useCallback(async () => {
+    if (!pipelineResult) return
+    setPatientHandoutLoading(true)
+    try {
+      const t = await fetchSummary(pipelineResult, drugProfiles)
+      setPatientHandoutText(t)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setPatientHandoutLoading(false)
+    }
+  }, [pipelineResult, drugProfiles])
 
   const handleDemoPatient = useCallback(
     async (p: DemoPatient) => {
@@ -175,8 +218,10 @@ export default function App() {
     setActiveView(VIEW_ORDER[activeIndex + 1])
   }, [activeIndex, canGoNext])
 
+  const showFooterNav = hasAnalyzed && activeView !== 'intake'
+
   return (
-    <div className="min-h-screen bg-[var(--gray-50)] pb-8 pt-[7.5rem]">
+    <div className="phenorx-app min-h-screen bg-[var(--px-bg)] pb-8 font-sans text-[var(--px-text)]">
       <NavBar onLoadDemo={handleDemoPatient} />
       <ViewStepper
         active={activeView}
@@ -184,67 +229,93 @@ export default function App() {
         onSelect={(v) => setActiveView(v)}
       />
 
-      {isLoading && <LoadingSpinner label="Analyzing…" />}
+      {isLoading && <LoadingSpinner />}
 
-      {activeView === 'intake' && (
-        <PatientIntake
-          patientId={patientId}
-          genotypes={genotypes}
-          medications={medications}
-          plan={plan}
-          isLoading={isLoading}
-          onPatientIdChange={setPatientId}
-          onGenotypesChange={setGenotypes}
-          onMedicationsChange={setMedications}
-          onPlanChange={setPlan}
-          onAnalyze={runAnalyze}
-        />
-      )}
+      <main
+        className="mx-auto max-w-[960px] px-8 pb-16 pt-[140px]"
+        style={{ paddingBottom: showFooterNav ? '5.5rem' : undefined }}
+      >
+        {activeView === 'intake' && (
+          <PatientIntake
+            patientId={patientId}
+            genotypes={genotypes}
+            medications={medications}
+            plan={plan}
+            isLoading={isLoading}
+            onPatientIdChange={setPatientId}
+            onGenotypesChange={setGenotypes}
+            onMedicationsChange={setMedications}
+            onPlanChange={setPlan}
+            onAnalyze={runAnalyze}
+          />
+        )}
 
-      {activeView === 'enzyme' && pipelineResult && (
-        <EnzymeDashboard
-          enzymeDashboard={pipelineResult.enzyme_dashboard}
-          genotypes={buildGenotypes(genotypes)}
-        />
-      )}
+        {activeView === 'enzyme' && pipelineResult && (
+          <EnzymeDashboard
+            enzymeDashboard={pipelineResult.enzyme_dashboard}
+            genotypes={buildGenotypes(genotypes)}
+          />
+        )}
 
-      {activeView === 'risk' && pipelineResult && (
-        <RiskReport pipeline={pipelineResult} insurance={insuranceResult} />
-      )}
+        {activeView === 'risk' && pipelineResult && (
+          <RiskReport
+            pipeline={pipelineResult}
+            insurance={insuranceResult}
+            drugProfiles={drugProfiles}
+            medications={medications}
+          />
+        )}
 
-      {activeView === 'matrix' && pipelineResult && (
-        <DrugMatrix
-          drugMatrix={pipelineResult.drug_matrix}
-          interactions={pipelineResult.interactions}
-        />
-      )}
+        {activeView === 'summary' && pipelineResult && (
+          <DischargeSummary
+            patientId={patientId}
+            clinicianSummary={clinicianSummary}
+            insurance={insuranceResult}
+            pipeline={pipelineResult}
+            onRequestPatientHandout={handleRequestPatientHandout}
+            patientHandoutText={patientHandoutText}
+            patientHandoutLoading={patientHandoutLoading}
+          />
+        )}
+      </main>
 
-      {activeView === 'summary' && pipelineResult && (
-        <DischargeSummary
-          patientId={patientId}
-          summaryText={summaryText}
-          insurance={insuranceResult}
-          pipeline={pipelineResult}
-        />
-      )}
-
-      {hasAnalyzed && (
-        <div className="mx-auto mt-6 flex max-w-[1280px] items-center justify-between px-4">
+      {showFooterNav && (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-[99] flex items-center justify-between border-t px-8 py-3"
+          style={{
+            background: 'rgba(10,10,11,0.85)',
+            backdropFilter: 'blur(16px)',
+            borderColor: 'var(--px-border)',
+          }}
+        >
           <button
             type="button"
             onClick={goBack}
             disabled={!canGoBack}
-            className="rounded-full border border-[var(--gray-200)] bg-white px-5 py-2 text-sm font-semibold text-[var(--navy)] shadow-sm transition disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex cursor-pointer items-center gap-1.5 rounded-lg border px-4 py-2 text-[13px] font-medium transition hover:brightness-110 disabled:cursor-not-allowed"
+            style={{
+              borderColor: 'var(--px-border)',
+              background: 'transparent',
+              color: 'var(--px-text-secondary)',
+              opacity: canGoBack ? 1 : 0.3,
+            }}
           >
-            Previous
+            <ChevronLeft size={14} /> Previous
           </button>
+          <span className="text-[11px] text-[var(--px-text-tertiary)]">
+            Use arrow keys to navigate
+          </span>
           <button
             type="button"
             onClick={goNext}
             disabled={!canGoNext}
-            className="rounded-full bg-[var(--navy)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex cursor-pointer items-center gap-1.5 rounded-lg border-none px-4 py-2 text-[13px] font-semibold transition disabled:cursor-not-allowed"
+            style={{
+              background: canGoNext ? 'var(--px-accent)' : 'rgba(255,255,255,0.06)',
+              color: canGoNext ? 'var(--px-bg)' : 'var(--px-text-tertiary)',
+            }}
           >
-            {activeView === 'matrix' ? 'Go to Summary' : 'Next'}
+            Next <ChevronRight size={14} />
           </button>
         </div>
       )}
