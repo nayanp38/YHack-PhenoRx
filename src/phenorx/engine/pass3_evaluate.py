@@ -237,7 +237,7 @@ def evaluate_drug_risks(
                 reduction_frac = (baseline_activity - effective_activity) / baseline_activity
                 if effective_activity == 0.0:
                     risk = "critical"
-                elif reduction_frac > 0.5:
+                elif reduction_frac >= 0.5:
                     risk = "high"
                 else:
                     # Not explicitly covered in the risk table for prodrugs;
