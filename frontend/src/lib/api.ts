@@ -110,6 +110,33 @@ export async function fetchClinicianSummary(payload: {
   ) as Promise<ClinicianSummary>
 }
 
+export interface GenotypeUploadDetail {
+  gene: string
+  diplotype: string
+  source: string
+  confidence: string
+  reported_phenotype: string | null
+  computed_phenotype: string | null
+  validation_warning: string | null
+}
+
+export interface GenotypeUploadResult {
+  genotypes: Record<string, string>
+  details: GenotypeUploadDetail[]
+  source_type: string
+  warnings: string[]
+  error?: string
+}
+
+export async function uploadGenotype(file: File): Promise<GenotypeUploadResult> {
+  const form = new FormData()
+  form.append('file', file)
+  const data = await json(
+    await fetch('/api/v1/genotype/upload', { method: 'POST', body: form })
+  )
+  return data as GenotypeUploadResult
+}
+
 export async function previewGenotype(enzyme: string, allele1: string, allele2: string) {
   return json(
     await fetch('/api/v1/genotype/preview', {

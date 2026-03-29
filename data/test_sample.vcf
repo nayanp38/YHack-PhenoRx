@@ -1,0 +1,9 @@
+##fileformat=VCFv4.2
+##reference=GRCh38
+##INFO=<ID=.,Number=.,Type=String,Description="No info">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	TEST_PATIENT
+chr10	94761900	rs12248560	C	T	.	PASS	.	GT	0/1
+chr10	94842866	rs4244285	G	A	.	PASS	.	GT	0/0
+chr10	94981296	rs1057910	A	C	.	PASS	.	GT	0/1
+chr22	42128945	rs3892097	C	T	.	PASS	.	GT	0/1

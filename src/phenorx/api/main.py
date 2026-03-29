@@ -24,6 +24,7 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from phenorx.engine.genotype_extractor import extract_from_pdf, parse_vcf
 from phenorx.engine.genotype_parser import genotype_to_activity
 from phenorx.engine.pipeline import (
     load_default_allele_map,
@@ -679,6 +680,50 @@ def genotype_preview(req: GenotypePreviewRequest) -> Dict[str, Any]:
         "diplotype": dip,
         "activity_score": b.activity_score,
         "phenotype": b.phenotype,
+    }
+
+
+@app.post("/api/v1/genotype/upload")
+async def upload_genotype(file: UploadFile = File(...)) -> Dict[str, Any]:
+    """Accept a VCF file or PGx lab report PDF and extract genotypes."""
+    content = await file.read()
+
+    if len(content) > 10 * 1024 * 1024:
+        return {"error": "File exceeds 10MB limit.", "genotypes": {}, "details": [], "warnings": []}
+
+    mime = file.content_type or "application/octet-stream"
+    filename = (file.filename or "").lower()
+
+    is_vcf = filename.endswith(".vcf") or filename.endswith(".vcf.gz")
+    is_pdf = "pdf" in mime or filename.endswith(".pdf")
+
+    if is_vcf:
+        allele_defs_path = ROOT / "data" / "pgx_allele_definitions.json"
+        result = parse_vcf(content, allele_defs_path)
+    elif is_pdf:
+        result = await extract_from_pdf(content, mime)
+    else:
+        return {
+            "error": "Unsupported file type. Upload a .vcf or .pdf file.",
+            "genotypes": {}, "details": [], "warnings": [],
+        }
+
+    if result.error:
+        return {
+            "error": result.error,
+            "genotypes": {}, "details": [], "warnings": result.warnings,
+        }
+
+    for gene in ["CYP2D6", "CYP2C19", "CYP2C9"]:
+        if gene not in result.genotypes:
+            result.genotypes[gene] = "*1/*1"
+            result.warnings.append(f"No data found for {gene}, defaulting to *1/*1")
+
+    return {
+        "genotypes": result.genotypes,
+        "details": [vars(d) for d in result.details],
+        "source_type": result.source_type,
+        "warnings": result.warnings,
     }
 
 
