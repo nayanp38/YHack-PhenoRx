@@ -124,11 +124,15 @@ export function PatientIntake({
           {initial}
         </div>
         <div className="min-w-0 flex-1">
-          <label className="block">
-            <span className="text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--px-text-tertiary)]">
+          <label className="flex min-w-0 flex-nowrap items-center gap-5">
+            <span className="shrink-0 text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--px-text-tertiary)]">
               Patient ID
             </span>
-            <input className={`mt-1 ${inputClass} max-w-md`} value={patientId} onChange={(e) => onPatientIdChange(e.target.value)} />
+            <input
+              className={`min-w-0 flex-1 ${inputClass} max-w-md`}
+              value={patientId}
+              onChange={(e) => onPatientIdChange(e.target.value)}
+            />
           </label>
         </div>
       </div>
@@ -216,7 +220,7 @@ export function PatientIntake({
             onClick={() =>
               onMedicationsChange([
                 ...medications,
-                { drug_name: '', dose_mg: '', indication: '' },
+                { drug_name: '', dosage: '', indication: '' },
               ])
             }
           >

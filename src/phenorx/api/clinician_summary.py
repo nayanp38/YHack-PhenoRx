@@ -372,10 +372,10 @@ def _fallback_summary(
         )
         alts = p.get("alternative_drugs") or []
         rec = (
-            f"Recommendation: review alternatives such as {', '.join(str(x) for x in alts[:3])} "
+            f"review alternatives such as {', '.join(str(x) for x in alts[:3])} "
             "per institutional protocol."
             if alts
-            else "Recommendation: review dosing or alternative therapy per institutional protocol."
+            else "review dosing or alternative therapy per institutional protocol."
         )
         alerts.append(
             PhenoconversionAlertJson(

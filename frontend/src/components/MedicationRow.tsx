@@ -27,10 +27,10 @@ export function MedicationRow({ med, index, drugNames, onChange, onRemove }: Pro
   }, [drugNames, q])
 
   return (
-    <div className="mb-2 flex flex-wrap items-start gap-2">
-      <div className="relative min-w-[200px] flex-[2]">
+    <div className="mb-2 flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto">
+      <div className="relative min-w-0 flex-[2] basis-0">
         <input
-          className={`w-full ${fieldClass}`}
+          className={`w-full min-w-0 ${fieldClass}`}
           placeholder="Drug name"
           value={q}
           onChange={(e) => {
@@ -73,20 +73,20 @@ export function MedicationRow({ med, index, drugNames, onChange, onRemove }: Pro
       </div>
       <input
         id={`dose-${index}`}
-        type="number"
-        className={`min-w-[80px] flex-1 md:max-w-[120px] ${fieldClass}`}
-        placeholder="mg"
-        value={med.dose_mg === '' ? '' : med.dose_mg}
+        type="text"
+        inputMode="decimal"
+        className={`w-[5.5rem] shrink-0 sm:w-28 ${fieldClass}`}
+        placeholder="Dose (e.g. mg)"
+        value={med.dosage}
         onChange={(e) => {
-          const v = e.target.value
           onChange(index, {
             ...med,
-            dose_mg: v === '' ? '' : Number(v),
+            dosage: e.target.value,
           })
         }}
       />
       <input
-        className={`min-w-[120px] flex-1 ${fieldClass}`}
+        className={`min-w-0 flex-1 basis-0 ${fieldClass}`}
         placeholder="indication"
         value={med.indication}
         onChange={(e) => onChange(index, { ...med, indication: e.target.value })}
