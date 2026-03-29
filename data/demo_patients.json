@@ -36,6 +36,41 @@
       "plan_name": "BlueRx Enhanced Plus (PDP)",
       "plan_type": "medicare"
     }
+  },
+  {
+    "patient_id": "PT-RANK-HUMANA",
+    "age": 68,
+    "genotypes": {
+      "CYP2D6": "*1/*4",
+      "CYP2C19": "*1/*1"
+    },
+    "medications": [
+      { "drug_name": "metoprolol", "dose_mg": 50, "indication": "hypertension" },
+      { "drug_name": "fluoxetine", "dose_mg": 20, "indication": "depression" },
+      { "drug_name": "omeprazole", "dose_mg": 20, "indication": "GERD" }
+    ],
+    "insurance": {
+      "plan_id": "H0028-014",
+      "plan_name": "Humana Gold Plus H0028-014 (HMO)",
+      "plan_type": "medicare"
+    }
+  },
+  {
+    "patient_id": "PT-RANK-BLUERX",
+    "age": 68,
+    "genotypes": {
+      "CYP2D6": "*1/*4",
+      "CYP2C19": "*1/*1"
+    },
+    "medications": [
+      { "drug_name": "metoprolol", "dose_mg": 50, "indication": "hypertension" },
+      { "drug_name": "fluoxetine", "dose_mg": 20, "indication": "depression" },
+      { "drug_name": "omeprazole", "dose_mg": 20, "indication": "GERD" }
+    ],
+    "insurance": {
+      "plan_id": "S1030-001",
+      "plan_name": "BlueRx Enhanced Plus (PDP)",
+      "plan_type": "medicare"
+    }
   }
 ]
-

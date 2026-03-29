@@ -85,6 +85,7 @@ export default function App() {
         patient_id: payload.patient_id,
         genotypes: gen,
         medications: meds,
+        plan: payload.plan,
       })
       setPipelineResult(pipeline)
       setHasAnalyzed(true)
