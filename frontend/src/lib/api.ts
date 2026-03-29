@@ -79,3 +79,12 @@ export async function fetchPlans(): Promise<InsurancePlan[]> {
   const data = await json(await fetch('/api/v1/meta/plans'))
   return data.plans as InsurancePlan[]
 }
+
+export async function ocrMedications(file: File): Promise<string[]> {
+  const form = new FormData()
+  form.append('file', file)
+  const data = await json(
+    await fetch('/api/v1/ocr/medications', { method: 'POST', body: form })
+  )
+  return data.medications as string[]
+}
