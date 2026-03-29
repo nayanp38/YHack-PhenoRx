@@ -2,6 +2,12 @@
 
 export type ActiveView = 'intake' | 'enzyme' | 'risk' | 'matrix' | 'summary'
 
+export interface HelpChatReply {
+  page: ActiveView
+  answer: string
+  suggested_questions: string[]
+}
+
 export interface EnzymeBaseline {
   enzyme_name: string
   activity_score: number
