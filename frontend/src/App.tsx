@@ -44,7 +44,7 @@ export default function App() {
     CYP2C9: '*1/*1',
   })
   const [medications, setMedications] = useState<MedicationInput[]>([
-    { drug_name: '', dose_mg: '', indication: '' },
+    { drug_name: '', dosage: '', indication: '' },
   ])
   const [plan, setPlan] = useState<InsurancePlan | null>(null)
 
@@ -58,7 +58,7 @@ export default function App() {
     try {
       const meds = payload.medications.map((m) => ({
         drug_name: m.drug_name,
-        ...(m.dose_mg != null ? { dose_mg: m.dose_mg } : {}),
+        ...(m.dosage ? { dosage: m.dosage } : {}),
         ...(m.indication ? { indication: m.indication } : {}),
       }))
       const gen = buildGenotypes(payload.genotypes)
@@ -107,7 +107,7 @@ export default function App() {
       setMedications(
         p.medications.map((m) => ({
           drug_name: m.drug_name,
-          dose_mg: m.dose_mg ?? '',
+          dosage: m.dose_mg != null ? String(m.dose_mg) : '',
           indication: m.indication ?? '',
         }))
       )
@@ -126,7 +126,7 @@ export default function App() {
         .filter((m) => m.drug_name.trim())
         .map((m) => ({
           drug_name: m.drug_name.trim().toLowerCase(),
-          ...(m.dose_mg != null ? { dose_mg: m.dose_mg } : {}),
+          ...(m.dose_mg != null ? { dosage: String(m.dose_mg) } : {}),
           ...(m.indication?.trim() ? { indication: m.indication.trim() } : {}),
         }))
       await runAnalyze({

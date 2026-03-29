@@ -1,5 +1,5 @@
 import { X } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { MedicationInput } from '../types'
 
 type Props = {
@@ -14,6 +14,8 @@ export function MedicationRow({ med, index, drugNames, onChange, onRemove }: Pro
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState(med.drug_name)
   const blurRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => { setQ(med.drug_name) }, [med.drug_name])
 
   const suggestions = useMemo(() => {
     const s = q.trim().toLowerCase()
@@ -62,17 +64,11 @@ export function MedicationRow({ med, index, drugNames, onChange, onRemove }: Pro
       </div>
       <input
         id={`dose-${index}`}
-        type="number"
-        className="w-full min-w-[80px] flex-1 rounded-lg border border-[var(--gray-200)] px-3 py-2 text-sm md:max-w-[120px]"
-        placeholder="mg"
-        value={med.dose_mg === '' ? '' : med.dose_mg}
-        onChange={(e) => {
-          const v = e.target.value
-          onChange(index, {
-            ...med,
-            dose_mg: v === '' ? '' : Number(v),
-          })
-        }}
+        type="text"
+        className="w-full min-w-[80px] flex-1 rounded-lg border border-[var(--gray-200)] px-3 py-2 text-sm md:max-w-[160px]"
+        placeholder="Dosage"
+        value={med.dosage}
+        onChange={(e) => onChange(index, { ...med, dosage: e.target.value })}
       />
       <input
         className="min-w-[120px] flex-1 rounded-lg border border-[var(--gray-200)] px-3 py-2 text-sm"

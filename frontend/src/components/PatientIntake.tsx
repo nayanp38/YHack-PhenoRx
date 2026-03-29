@@ -9,7 +9,7 @@ import { MedicationRow } from './MedicationRow'
 export type IntakePayload = {
   patient_id: string
   genotypes: Record<string, string>
-  medications: Array<{ drug_name: string; dose_mg?: number; indication?: string }>
+  medications: Array<{ drug_name: string; dosage?: string; indication?: string }>
   plan: InsurancePlan | null
 }
 
@@ -53,12 +53,16 @@ export function PatientIntake({
     setOcrError(null)
     setOcrLoading(true)
     try {
-      const meds = await ocrMedications(file)
-      if (meds.length === 0) {
+      const result = await ocrMedications(file)
+      if (result.error) {
+        setOcrError(result.error)
+        return
+      }
+      if (result.medications.length === 0) {
         setOcrError('No medications found in the uploaded file.')
         return
       }
-      const newMeds = meds.map((name) => ({ drug_name: name, dose_mg: '' as const, indication: '' }))
+      const newMeds = result.medications.map((m) => ({ drug_name: m.drug_name, dosage: m.dosage || '', indication: m.indication || '' }))
       onMedicationsChange([
         ...medications.filter((m) => m.drug_name.trim()),
         ...newMeds,
@@ -76,7 +80,7 @@ export function PatientIntake({
       .filter((m) => m.drug_name.trim())
       .map((m) => ({
         drug_name: m.drug_name.trim().toLowerCase(),
-        ...(m.dose_mg !== '' ? { dose_mg: Number(m.dose_mg) } : {}),
+        ...(m.dosage.trim() ? { dosage: m.dosage.trim() } : {}),
         ...(m.indication.trim() ? { indication: m.indication.trim() } : {}),
       }))
     onAnalyze({
@@ -175,7 +179,7 @@ export function PatientIntake({
               onClick={() =>
                 onMedicationsChange([
                   ...medications,
-                  { drug_name: '', dose_mg: '', indication: '' },
+                  { drug_name: '', dosage: '', indication: '' },
                 ])
               }
             >

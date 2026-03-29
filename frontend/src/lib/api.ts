@@ -9,7 +9,7 @@ import type {
 export type ScreenInsurancePayload = {
   patient_id?: string
   genotypes: Record<string, string>
-  medications: Array<{ drug_name: string; dose_mg?: number; indication?: string }>
+  medications: Array<{ drug_name: string; dose_mg?: number; dosage?: string; indication?: string }>
   plan: InsurancePlan
   pipeline_result: PipelineResult
 }
@@ -22,7 +22,7 @@ const json = (r: Response) => {
 export async function analyzePatient(payload: {
   patient_id?: string
   genotypes: Record<string, string>
-  medications: Array<{ drug_name: string; dose_mg?: number; indication?: string }>
+  medications: Array<{ drug_name: string; dose_mg?: number; dosage?: string; indication?: string }>
 }): Promise<PipelineResult> {
   return json(
     await fetch('/api/v1/analyze', {
@@ -82,13 +82,15 @@ export async function fetchPlans(): Promise<InsurancePlan[]> {
   return data.plans as InsurancePlan[]
 }
 
-export async function ocrMedications(file: File): Promise<string[]> {
+export type OcrMedication = { drug_name: string; dosage: string; indication: string }
+
+export async function ocrMedications(file: File): Promise<{ medications: OcrMedication[]; error?: string }> {
   const form = new FormData()
   form.append('file', file)
   const data = await json(
     await fetch('/api/v1/ocr/medications', { method: 'POST', body: form })
   )
-  return data.medications as string[]
+  return { medications: data.medications as OcrMedication[], error: data.error as string | undefined }
 }
 
 export async function askHelpChat(page: ActiveView, question: string): Promise<HelpChatReply> {
