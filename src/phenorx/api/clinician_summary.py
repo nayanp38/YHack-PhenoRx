@@ -33,6 +33,37 @@ class ClinicianSummaryJson(BaseModel):
     insurance_statement: Optional[str] = None
 
 
+def _build_insurance_statement(
+    affordability: List[Dict[str, Any]], has_plan: bool
+) -> Optional[str]:
+    if not has_plan:
+        return None
+
+    for item in affordability:
+        ranked = item.get("ranked_alternatives") or []
+        if len(ranked) < 2:
+            continue
+
+        better = ranked[0]
+        worse = ranked[1]
+        better_tier = better.get("tier")
+        worse_tier = worse.get("tier")
+        if better_tier is None or worse_tier is None or better_tier >= worse_tier:
+            continue
+
+        better_name = str(better.get("drug_name") or "").strip()
+        worse_name = str(worse.get("drug_name") or "").strip()
+        if not better_name or not worse_name:
+            continue
+
+        return (
+            f"For your patient, {better_name} (Tier {better_tier}) is covered better by insurance "
+            f"than {worse_name} (Tier {worse_tier})."
+        )
+
+    return "Review the cost footer for per-drug tier and estimated copays under the selected plan."
+
+
 _ABBREV_REPLACEMENTS = (
     (r"\bQD\b", "once daily (QD)"),
     (r"\bBID\b", "twice daily (BID)"),
@@ -166,6 +197,7 @@ def _validate_and_fix(
     *,
     pheno_seed_count: int,
     has_plan: bool,
+    insurance_seed_statement: Optional[str],
 ) -> Tuple[ClinicianSummaryJson, List[str]]:
     failures: List[str] = []
     alerts_raw = data.get("phenoconversion_alerts") or []
@@ -228,8 +260,10 @@ def _validate_and_fix(
 
     if not has_plan:
         ins = None
-    elif ins is not None:
-        ins = _expand_abbreviations(str(ins))
+    else:
+        ins = insurance_seed_statement or (
+            _expand_abbreviations(str(ins)) if ins is not None else None
+        )
 
     summary = ClinicianSummaryJson(
         phenoconversion_alerts=alerts,
@@ -258,6 +292,10 @@ def generate_clinician_summary(
     se_seed = _collect_side_effect_seed([x for x in interactions if isinstance(x, dict)])
 
     affordability = pipeline_result.get("affordability") or []
+    insurance_seed_statement = _build_insurance_statement(
+        [x for x in affordability if isinstance(x, dict)],
+        insurance_plan is not None,
+    )
 
     input_payload = {
         "patient_name": patient_name,
@@ -266,6 +304,7 @@ def generate_clinician_summary(
         "side_effect_seed": se_seed,
         "affordability": affordability,
         "insurance_plan": insurance_plan,
+        "insurance_seed_statement": insurance_seed_statement,
         "safe_drug_profiles": drug_profiles or [],
     }
 
@@ -284,8 +323,8 @@ def generate_clinician_summary(
         "- phenoconversion_alerts: one entry per item in phenoconversion_seed (same drug_name order). "
         "Expand failure_type from seed.\n"
         "- side_effect_flags: only for items in side_effect_seed; keep clinically actionable.\n"
-        "- insurance_statement: 2-3 sentences summarizing best/worst coverage across drugs; "
-        "null if insurance_plan is null.\n"
+        "- insurance_statement: use insurance_seed_statement when it is provided; "
+        "keep it succinct and top-line. Return null if insurance_plan is null.\n"
         "- No unexplained clinical abbreviations (spell out or use plain language).\n"
     )
 
@@ -293,7 +332,12 @@ def generate_clinician_summary(
 
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
-        return _fallback_summary(pheno_seed, se_seed, insurance_plan is not None), True, []
+        return _fallback_summary(
+            pheno_seed,
+            se_seed,
+            insurance_plan is not None,
+            insurance_seed_statement,
+        ), True, []
 
     try:
         import anthropic
@@ -328,6 +372,7 @@ def generate_clinician_summary(
             parsed,
             pheno_seed_count=len(pheno_seed),
             has_plan=insurance_plan is not None,
+            insurance_seed_statement=insurance_seed_statement,
         )
 
         if fails:
@@ -341,6 +386,7 @@ def generate_clinician_summary(
                     parsed2,
                     pheno_seed_count=len(pheno_seed),
                     has_plan=insurance_plan is not None,
+                    insurance_seed_statement=insurance_seed_statement,
                 )
                 return summary2, len(fails2) == 0, fails2
             return summary, False, fails
@@ -348,7 +394,12 @@ def generate_clinician_summary(
         return summary, True, []
     except Exception:
         return (
-            _fallback_summary(pheno_seed, se_seed, insurance_plan is not None),
+            _fallback_summary(
+                pheno_seed,
+                se_seed,
+                insurance_plan is not None,
+                insurance_seed_statement,
+            ),
             True,
             [],
         )
@@ -358,6 +409,7 @@ def _fallback_summary(
     pheno_seed: List[Dict[str, Any]],
     se_seed: List[Dict[str, Any]],
     has_plan: bool,
+    insurance_seed_statement: Optional[str],
 ) -> ClinicianSummaryJson:
     alerts: List[PhenoconversionAlertJson] = []
     for p in pheno_seed:
@@ -416,7 +468,7 @@ def _fallback_summary(
 
     ins = None
     if has_plan:
-        ins = (
+        ins = insurance_seed_statement or (
             "Review the cost footer for per-drug tier and estimated copays under the selected plan."
         )
 
