@@ -1,5 +1,6 @@
 import type { AlternativeComparison, InsuranceScreeningResult, PipelineResult } from '../types'
 import { SeverityBadge } from './SeverityBadge'
+import { TierBadge } from './TierBadge'
 
 type Props = {
   insurance: InsuranceScreeningResult
@@ -64,7 +65,9 @@ export function CostFooter({ insurance, pipeline }: Props) {
             <tr key={d.drugName} className="border-b" style={{ borderColor: 'var(--px-border)' }}>
               <td className="py-2 pr-2 font-medium">{d.drugName}</td>
               <td className="py-2 pr-2 text-[var(--px-text-secondary)]">Current</td>
-              <td className="py-2 pr-2">{d.tierLevel ?? '—'}</td>
+              <td className="py-2 pr-2">
+                <TierBadge tier={d.tierLevel} size="md" />
+              </td>
               <td className="py-2 pr-2">
                 {d.estimatedMonthlyCost != null ? `$${d.estimatedMonthlyCost}` : '—'}
               </td>

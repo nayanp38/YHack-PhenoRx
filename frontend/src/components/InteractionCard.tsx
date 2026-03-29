@@ -7,6 +7,7 @@ import type {
 } from '../types'
 import { DrugChip } from './DrugChip'
 import { SeverityBadge } from './SeverityBadge'
+import { TierBadge } from './TierBadge'
 
 function riskStyles(level: string) {
   const l = level.toLowerCase()
@@ -109,7 +110,7 @@ export function InteractionCard({
 
   return (
     <article
-      className={`overflow-hidden rounded-[14px] border border-[var(--px-border)] ${rs.pulse ? 'animate-pulse-border' : ''}`}
+      className={`overflow-visible rounded-[14px] border border-[var(--px-border)] ${rs.pulse ? 'animate-pulse-border' : ''}`}
       style={{
         background: 'var(--px-bg-card)',
         borderLeftWidth: 3,
@@ -211,10 +212,13 @@ export function InteractionCard({
                 <span className="rounded bg-[var(--px-critical-dim)] px-2 py-0.5 font-semibold text-[var(--px-critical)]">
                   {interaction.effective_phenotype}
                 </span>
-                <span className="font-mono text-[12px]">
-                  {(interaction.baseline_activity_score ?? '—').toString()} →{' '}
-                  {(interaction.effective_activity_score ?? '—').toString()}
-                </span>
+                {(interaction.baseline_activity_score != null ||
+                  interaction.effective_activity_score != null) && (
+                  <span className="font-mono text-[12px]">
+                    {(interaction.baseline_activity_score ?? '—').toString()} →{' '}
+                    {(interaction.effective_activity_score ?? '—').toString()}
+                  </span>
+                )}
               </div>
             </div>
             <div>
@@ -225,7 +229,9 @@ export function InteractionCard({
                 {altRows.map((alt) => {
                   const parts: string[] = []
                   if (alt.covered) {
-                    parts.push(alt.tier != null ? `Tier ${alt.tier}` : 'Covered')
+                    if (alt.tier == null) {
+                      parts.push('Covered')
+                    }
                   } else {
                     parts.push('Not covered')
                   }
@@ -235,7 +241,8 @@ export function InteractionCard({
                     <DrugChip
                       key={alt.drug_name}
                       drugName={alt.drug_name}
-                      sub={parts.join(' · ')}
+                      formularyTier={alt.covered ? alt.tier : null}
+                      sub={parts.length ? parts.join(' · ') : undefined}
                       severityVerdict={comp?.severity_verdict}
                       sideEffectData={comp}
                       flaggedDrugName={interaction.drug_name}
@@ -277,12 +284,19 @@ export function InteractionCard({
               Plan: {insurance.plan.planName || '—'} ({insurance.plan.contractId}-{insurance.plan.planId})
             </p>
             {cov && (
-              <p className="mt-1 text-xs text-[var(--px-text)]">
-                <span className="font-semibold">{interaction.drug_name}</span>:{' '}
+              <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[var(--px-text)]">
+                <span className="font-semibold">{interaction.drug_name}</span>
+                <span>:</span>
                 {cov.covered ? 'Covered' : 'Not covered'}
-                {cov.tierLevel != null ? ` · Tier ${cov.tierLevel}` : ''}
-                {cov.tierName ? ` · ${cov.tierName}` : ''}
-                {cov.estimatedMonthlyCost != null ? ` · ~$${cov.estimatedMonthlyCost}/mo` : ''}
+                <TierBadge tier={cov.tierLevel} size="md" />
+                {cov.tierName ? (
+                  <span className="text-[var(--px-text-secondary)]">({cov.tierName})</span>
+                ) : null}
+                {cov.estimatedMonthlyCost != null ? (
+                  <span className="text-[var(--px-text-secondary)]">
+                    ~${cov.estimatedMonthlyCost}/mo
+                  </span>
+                ) : null}
               </p>
             )}
           </section>

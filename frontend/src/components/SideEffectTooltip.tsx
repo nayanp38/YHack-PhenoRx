@@ -7,6 +7,8 @@ export interface SideEffectTooltipProps {
   flaggedTop3: AdverseEvent[]
   alternativeComparison: AlternativeComparison
   position?: 'above' | 'below'
+  /** `portal`: no absolute positioning — parent provides fixed placement (e.g. document.body portal) */
+  layout?: 'anchor' | 'portal'
 }
 
 function gradeDotClass(g: number): string {
@@ -51,18 +53,25 @@ export function SideEffectTooltip({
   flaggedTop3,
   alternativeComparison,
   position = 'below',
+  layout = 'anchor',
 }: SideEffectTooltipProps) {
   const alt = alternativeComparison
   const altName = alt.alternative_drug
   const altSap = alt.alternative_sap
   const delta = alt.severity_delta
   const warnings = alt.actionable_warnings ?? []
+  const positionClass =
+    layout === 'portal'
+      ? 'relative'
+      : `absolute z-[10000] ${
+          position === 'below' ? 'left-0 top-full mt-1' : 'bottom-full left-0 mb-1'
+        }`
   return (
     <div
-      className={`absolute z-50 w-[min(320px,calc(100vw-2rem))] rounded-lg border border-[var(--gray-200)] bg-white p-3 text-left shadow-lg ${
-        position === 'below' ? 'left-0 top-full mt-1' : 'bottom-full left-0 mb-1'
-      }`}
-      style={{ boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+      className={`${positionClass} w-[min(320px,calc(100vw-2rem))] rounded-lg border border-[var(--gray-200)] bg-white p-3 text-left shadow-lg`}
+      style={{
+        boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 25px 50px -12px rgba(0,0,0,0.15)',
+      }}
       role="tooltip"
       onMouseDown={(e) => e.preventDefault()}
     >

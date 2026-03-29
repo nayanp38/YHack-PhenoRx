@@ -1,5 +1,6 @@
 import type { DrugCoverage, DrugProfile } from '../types'
 import { SeverityBar } from './SeverityBar'
+import { TierBadge } from './TierBadge'
 
 function formatPt(s: string): string {
   return s.replace(/_/g, ' ')
@@ -32,11 +33,15 @@ function InsuranceBlock({ cov }: { cov: DrugCoverage }) {
       style={{ borderColor: 'var(--px-border)', background: 'rgba(255,255,255,0.02)' }}
     >
       <p className="text-xs font-bold uppercase tracking-wide text-[var(--px-text-tertiary)]">Insurance</p>
-      <p className="mt-1 text-sm text-[var(--px-text)]">
-        Tier {cov.tierLevel ?? '—'}
-        {cov.tierName ? ` · ${cov.tierName}` : ''}
-        {cov.estimatedMonthlyCost != null ? ` · ~$${cov.estimatedMonthlyCost}/mo` : ''}
-      </p>
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[var(--px-text)]">
+        <TierBadge tier={cov.tierLevel} size="md" />
+        {cov.tierName ? (
+          <span className="text-[var(--px-text-secondary)]">{cov.tierName}</span>
+        ) : null}
+        {cov.estimatedMonthlyCost != null ? (
+          <span className="text-[var(--px-text-secondary)]">~${cov.estimatedMonthlyCost}/mo</span>
+        ) : null}
+      </div>
     </div>
   )
 }
