@@ -152,7 +152,7 @@ export interface SideEffectComparison {
 
 export interface MedicationInput {
   drug_name: string
-  dose_mg: number | ''
+  dosage: string
   indication: string
 }
 

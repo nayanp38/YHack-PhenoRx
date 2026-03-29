@@ -69,6 +69,7 @@ def _allele_data() -> Dict[str, Dict[str, float]] | None:
 class MedicationIn(BaseModel):
     drug_name: str
     dose_mg: Optional[float] = None
+    dosage: Optional[str] = None
     indication: Optional[str] = None
 
 
@@ -85,7 +86,16 @@ def analyze(req: AnalyzeRequest) -> Dict[str, Any]:
         "genotypes": {k.upper(): v for k, v in req.genotypes.items()},
         "medications": [m.model_dump(exclude_none=True) for m in req.medications],
     }
-    return run_pipeline(patient, knowledge_base=_kb_data(), allele_function_map=_allele_data())
+    result = run_pipeline(patient, knowledge_base=_kb_data(), allele_function_map=_allele_data())
+    result["medications_input"] = [
+        {
+            "drug_name": m.drug_name,
+            "dosage": m.dosage or (f"{m.dose_mg}mg" if m.dose_mg else ""),
+            "indication": m.indication or "",
+        }
+        for m in req.medications
+    ]
+    return result
 
 
 class InsurancePlanIn(BaseModel):
@@ -196,14 +206,26 @@ class SummaryRequest(BaseModel):
 def _fallback_summary(data: Dict[str, Any]) -> str:
     pid = data.get("patient_id") or "Patient"
     interactions = data.get("interactions") or []
+    med_inputs = data.get("medications_input") or []
     lines = [
         f"**Your Medications**",
         "",
-        "This summary lists medications that were reviewed for this discharge.",
+    ]
+    if med_inputs:
+        for mi in med_inputs:
+            parts = [mi.get("drug_name", "")]
+            if mi.get("dosage"):
+                parts.append(f"— {mi['dosage']}")
+            if mi.get("indication"):
+                parts.append(f"(for {mi['indication']})")
+            lines.append(f"- {' '.join(parts)}")
+    else:
+        lines.append("This summary lists medications that were reviewed for this discharge.")
+    lines.extend([
         "",
         f"**What We Found**",
         "",
-    ]
+    ])
     if not interactions:
         lines.append(
             "No significant drug–gene interactions were flagged for this medication list."
@@ -258,7 +280,8 @@ def summary(req: SummaryRequest) -> Dict[str, str]:
                         "content": (
                             "Write a patient-facing discharge medication summary in plain language. "
                             "Use exactly these Markdown sections with bold headers:\n"
-                            "**Your Medications**\n\n"
+                            "**Your Medications** — list each medication with its dosage and "
+                            "indication/reason for taking it (from the medications_input field)\n\n"
                             "**What We Found**\n\n"
                             "**What This Means for You**\n\n"
                             "**What to Discuss with Your Doctor**\n\n"
@@ -285,48 +308,87 @@ async def ocr_medications(file: UploadFile = File(...)) -> Dict[str, Any]:
     if not gemini_key:
         return {"error": "GEMINI_API_KEY not set", "medications": []}
 
-    from google import genai
-
-    content = await file.read()
-    b64 = base64.b64encode(content).decode("utf-8")
-    mime = file.content_type or "image/png"
-
-    client = genai.Client(api_key=gemini_key)
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=[
-            {
-                "role": "user",
-                "parts": [
-                    {"inline_data": {"mime_type": mime, "data": b64}},
-                    {
-                        "text": (
-                            "This is a handwritten medication list from a doctor or pharmacy. "
-                            "Extract every medication name from it. Return ONLY a JSON array of "
-                            'strings, e.g. ["metoprolol", "lisinopril"]. Lowercase all names. '
-                            "If you cannot read a name, skip it. No explanation, just the JSON array."
-                        )
-                    },
-                ],
-            }
-        ],
-    )
-
-    raw = response.text.strip()
-    # Strip markdown code fences if present
-    if raw.startswith("```"):
-        raw = raw.split("\n", 1)[1] if "\n" in raw else raw[3:]
-        if raw.endswith("```"):
-            raw = raw[:-3].strip()
-
     try:
+        import tempfile
+        from google import genai
+        from google.genai import types
+
+        content = await file.read()
+        mime = file.content_type or "application/octet-stream"
+        suffix = ".pdf" if "pdf" in mime else ".png"
+
+        client = genai.Client(api_key=gemini_key)
+
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+            tmp.write(content)
+            tmp_path = tmp.name
+
+        try:
+            uploaded = client.files.upload(file=tmp_path)
+        finally:
+            os.unlink(tmp_path)
+
+        prompt = (
+            "Look at this document carefully. It is a medication list, "
+            "prescription, or pharmacy form. Extract every drug / medication "
+            "you can find (printed or handwritten). For each medication, extract:\n"
+            "- drug_name: the medication name (lowercase)\n"
+            "- dosage: the full dosage info (e.g. '50mg twice daily', '10mg/day'). "
+            "Include amount, strength, and frequency if available.\n"
+            "- indication: the reason for taking it (e.g. 'high blood pressure', "
+            "'pain relief'). Infer from medical knowledge if not explicitly stated.\n\n"
+            "Return ONLY a JSON array of objects, e.g.:\n"
+            '[{"drug_name": "metoprolol", "dosage": "50mg twice daily", '
+            '"indication": "high blood pressure"}]\n'
+            "No explanation, just the JSON array."
+        )
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[
+                types.Content(
+                    role="user",
+                    parts=[
+                        types.Part.from_uri(
+                            file_uri=uploaded.uri,
+                            mime_type=uploaded.mime_type,
+                        ),
+                        types.Part(text=prompt),
+                    ],
+                )
+            ],
+        )
+
+        raw = response.text.strip()
+        # Strip markdown code fences if present
+        if raw.startswith("```"):
+            raw = raw.split("\n", 1)[1] if "\n" in raw else raw[3:]
+            if raw.endswith("```"):
+                raw = raw[:-3].strip()
+
         meds = json.loads(raw)
         if not isinstance(meds, list):
-            meds = []
-    except json.JSONDecodeError:
-        meds = []
+            return {"error": f"Unexpected response format: {raw[:200]}", "medications": []}
 
-    return {"medications": [str(m).strip().lower() for m in meds if str(m).strip()]}
+        result = []
+        for m in meds:
+            if isinstance(m, dict):
+                name = str(m.get("drug_name", "")).strip().lower()
+                if name:
+                    result.append({
+                        "drug_name": name,
+                        "dosage": str(m.get("dosage", "")).strip(),
+                        "indication": str(m.get("indication", "")).strip(),
+                    })
+            elif isinstance(m, str) and m.strip():
+                result.append({"drug_name": m.strip().lower(), "dosage": "", "indication": ""})
+
+        return {"medications": result}
+
+    except Exception as exc:
+        import traceback
+        traceback.print_exc()
+        return {"error": str(exc), "medications": []}
 
 
 class GenotypePreviewRequest(BaseModel):
