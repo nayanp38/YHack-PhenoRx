@@ -1,6 +1,6 @@
-import { Loader2, Pill } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { fetchDrugList } from '../lib/api'
+import { Loader2, Pill, Upload } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { fetchDrugList, ocrMedications } from '../lib/api'
 import type { InsurancePlan, MedicationInput } from '../types'
 import { GenotypeSelector } from './GenotypeSelector'
 import { InsurancePlanSelector } from './InsurancePlanSelector'
@@ -39,12 +39,37 @@ export function PatientIntake({
   onAnalyze,
 }: Props) {
   const [drugNames, setDrugNames] = useState<string[]>([])
+  const [ocrLoading, setOcrLoading] = useState(false)
+  const [ocrError, setOcrError] = useState<string | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetchDrugList()
       .then(setDrugNames)
       .catch(() => setDrugNames([]))
   }, [])
+
+  const handleFileUpload = async (file: File) => {
+    setOcrError(null)
+    setOcrLoading(true)
+    try {
+      const meds = await ocrMedications(file)
+      if (meds.length === 0) {
+        setOcrError('No medications found in the uploaded file.')
+        return
+      }
+      const newMeds = meds.map((name) => ({ drug_name: name, dose_mg: '' as const, indication: '' }))
+      onMedicationsChange([
+        ...medications.filter((m) => m.drug_name.trim()),
+        ...newMeds,
+      ])
+    } catch {
+      setOcrError('Failed to process file. Please try again.')
+    } finally {
+      setOcrLoading(false)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
 
   const run = () => {
     const meds = medications
@@ -84,6 +109,50 @@ export function PatientIntake({
               <Pill className="h-5 w-5 text-[var(--navy)]" aria-hidden />
               Medications
             </h2>
+
+            <div
+              className="mb-4 flex flex-col items-center rounded-lg border-2 border-dashed border-[var(--gray-200)] p-4 text-center transition hover:border-[var(--navy)]"
+              onDragOver={(e) => { e.preventDefault(); e.stopPropagation() }}
+              onDrop={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                const f = e.dataTransfer.files[0]
+                if (f) handleFileUpload(f)
+              }}
+            >
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*,.pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0]
+                  if (f) handleFileUpload(f)
+                }}
+              />
+              {ocrLoading ? (
+                <div className="flex items-center gap-2 text-sm text-[var(--gray-500)]">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Extracting medications...
+                </div>
+              ) : (
+                <>
+                  <Upload className="mb-1 h-6 w-6 text-[var(--gray-400)]" />
+                  <p className="text-sm text-[var(--gray-500)]">
+                    Drag & drop or{' '}
+                    <button
+                      type="button"
+                      className="font-medium text-[var(--navy)] underline"
+                      onClick={() => fileRef.current?.click()}
+                    >
+                      browse
+                    </button>{' '}
+                    a photo/PDF of a handwritten medication list
+                  </p>
+                </>
+              )}
+              {ocrError && <p className="mt-1 text-xs text-red-500">{ocrError}</p>}
+            </div>
+
             {medications.map((med, i) => (
               <MedicationRow
                 key={i}

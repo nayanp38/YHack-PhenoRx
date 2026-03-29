@@ -16,7 +16,9 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI
+import base64
+
+from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -274,6 +276,57 @@ def summary(req: SummaryRequest) -> Dict[str, str]:
     if not text:
         text = _fallback_summary(req.pipeline_result)
     return {"summary": text}
+
+
+@app.post("/api/v1/ocr/medications")
+async def ocr_medications(file: UploadFile = File(...)) -> Dict[str, Any]:
+    """Extract medications from an uploaded image or PDF of a handwritten drug list."""
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+    if not gemini_key:
+        return {"error": "GEMINI_API_KEY not set", "medications": []}
+
+    from google import genai
+
+    content = await file.read()
+    b64 = base64.b64encode(content).decode("utf-8")
+    mime = file.content_type or "image/png"
+
+    client = genai.Client(api_key=gemini_key)
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=[
+            {
+                "role": "user",
+                "parts": [
+                    {"inline_data": {"mime_type": mime, "data": b64}},
+                    {
+                        "text": (
+                            "This is a handwritten medication list from a doctor or pharmacy. "
+                            "Extract every medication name from it. Return ONLY a JSON array of "
+                            'strings, e.g. ["metoprolol", "lisinopril"]. Lowercase all names. '
+                            "If you cannot read a name, skip it. No explanation, just the JSON array."
+                        )
+                    },
+                ],
+            }
+        ],
+    )
+
+    raw = response.text.strip()
+    # Strip markdown code fences if present
+    if raw.startswith("```"):
+        raw = raw.split("\n", 1)[1] if "\n" in raw else raw[3:]
+        if raw.endswith("```"):
+            raw = raw[:-3].strip()
+
+    try:
+        meds = json.loads(raw)
+        if not isinstance(meds, list):
+            meds = []
+    except json.JSONDecodeError:
+        meds = []
+
+    return {"medications": [str(m).strip().lower() for m in meds if str(m).strip()]}
 
 
 class GenotypePreviewRequest(BaseModel):
