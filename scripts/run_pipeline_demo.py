@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from phenorx.data.knowledge_base_loader import load_knowledge_base
-from phenorx.engine.genotype_parser import genotype_to_activity
-from phenorx.engine.pipeline import run_pipeline, load_default_allele_map
+from cypher.data.knowledge_base_loader import load_knowledge_base
+from cypher.engine.genotype_parser import genotype_to_activity
+from cypher.engine.pipeline import run_pipeline, load_default_allele_map
 
 
 ROOT = Path(__file__).resolve().parents[1]

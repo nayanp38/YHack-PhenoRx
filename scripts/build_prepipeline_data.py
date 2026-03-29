@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from phenorx.etl.cpic_loader import (
+from cypher.etl.cpic_loader import (
     fetch_cpic_alleles,
     preprocess_allele_function_map,
     save_raw_cpic_payload,

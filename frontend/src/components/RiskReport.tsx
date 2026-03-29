@@ -116,7 +116,7 @@ export function RiskReport({ pipeline, insurance, drugProfiles, medications }: P
             The server could not read{' '}
             <code className="rounded bg-black/20 px-1 text-xs">drug_side_effect_profiles.json</code> at{' '}
             <code className="break-all text-xs">{pipeline.meta?.side_effect_profiles_path ?? '—'}</code>.
-            Run the API from the PhenoRx repo root so <code className="text-xs">data/</code> is on disk.
+            Run the API from the CYPher repo root so <code className="text-xs">data/</code> is on disk.
           </p>
         </div>
       )}

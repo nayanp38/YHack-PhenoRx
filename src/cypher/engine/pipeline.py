@@ -16,7 +16,7 @@ from .side_effect_severity import (
     load_drug_profiles,
 )
 from .models import AffordabilityResult, EnzymeEffectiveState, EnzymeBaseline, DrugClassificationCell, InteractionResult, RankedAlternative
-from phenorx.data.knowledge_base_loader import load_knowledge_base
+from cypher.data.knowledge_base_loader import load_knowledge_base
 
 
 def _cell_to_json(cell: DrugClassificationCell) -> Dict[str, Any]:
@@ -168,7 +168,7 @@ def load_default_knowledge_base(repo_root: str | Path) -> Dict[Any, Any]:
 
 def _default_side_effect_profiles_path() -> Path:
     """Resolve bundled JSON whether the package runs from source tree or site-packages."""
-    env_dir = os.environ.get("PHENORX_DATA_DIR") or os.environ.get("PHENORX_REPO_ROOT")
+    env_dir = os.environ.get("CYPHER_DATA_DIR") or os.environ.get("CYPHER_REPO_ROOT")
     if env_dir:
         p = Path(env_dir) / "drug_side_effect_profiles.json"
         if p.is_file():

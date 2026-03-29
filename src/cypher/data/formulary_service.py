@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from phenorx.engine.models import FormularyEntry
+from cypher.engine.models import FormularyEntry
 
 
 # ---------------------------------------------------------------------------
@@ -164,8 +164,8 @@ def get_service_for_patient(
 
     if plan_type == "medicare" and cms_db_path and Path(cms_db_path).exists():
         # Lazy import avoids circular dependency
-        from phenorx.data.rxnorm_service import RxNormService
-        from phenorx.data.medicare_formulary import MedicareFormularyService
+        from cypher.data.rxnorm_service import RxNormService
+        from cypher.data.medicare_formulary import MedicareFormularyService
 
         cache_path = Path(rxnorm_cache_path) if rxnorm_cache_path else (
             Path(cms_db_path).parent / "rxnorm_cache.json"

@@ -72,7 +72,7 @@
   --severity-bar-bg: #e5e7eb;
   --profile-section-bg: #f9fafb;
 
-  /* PhenoRx reference UI (dark) — used under .phenorx-app */
+  /* CYPher reference UI (dark) — used under .cypher-app */
   --px-bg: #0a0a0b;
   --px-bg-card: rgba(255, 255, 255, 0.03);
   --px-bg-card-hover: rgba(255, 255, 255, 0.06);
@@ -127,13 +127,13 @@
   }
 }
 
-.phenorx-app ::-webkit-scrollbar {
+.cypher-app ::-webkit-scrollbar {
   width: 6px;
 }
-.phenorx-app ::-webkit-scrollbar-track {
+.cypher-app ::-webkit-scrollbar-track {
   background: transparent;
 }
-.phenorx-app ::-webkit-scrollbar-thumb {
+.cypher-app ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
 }
@@ -221,8 +221,8 @@ body {
   min-height: 100vh;
 }
 
-/* Dark-theme summary callouts (under .phenorx-app) */
-.phenorx-app .summary-callout {
+/* Dark-theme summary callouts (under .cypher-app) */
+.cypher-app .summary-callout {
   background: var(--px-bg-elevated);
   border-left-width: 4px;
   border-radius: 0 8px 8px 0;
@@ -230,17 +230,17 @@ body {
   margin: 12px 0;
 }
 
-.phenorx-app .summary-callout--critical {
+.cypher-app .summary-callout--critical {
   border-left-color: var(--px-critical);
   background: var(--px-critical-dim);
 }
 
-.phenorx-app .summary-callout--warning {
+.cypher-app .summary-callout--warning {
   border-left-color: var(--px-high);
   background: var(--px-high-dim);
 }
 
-.phenorx-app .summary-callout--insurance {
+.cypher-app .summary-callout--insurance {
   border-left-color: #a78bfa;
   background: rgba(167, 139, 250, 0.1);
 }

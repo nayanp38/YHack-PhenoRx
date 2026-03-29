@@ -208,7 +208,7 @@ export default function App() {
   const showFooterNav = hasAnalyzed && activeView !== 'intake'
 
   return (
-    <div className="phenorx-app min-h-screen bg-[var(--px-bg)] pb-8 font-sans text-[var(--px-text)]">
+    <div className="cypher-app min-h-screen bg-[var(--px-bg)] pb-8 font-sans text-[var(--px-text)]">
       <NavBar onLoadDemo={handleDemoPatient} />
       <ViewStepper
         active={activeView}

@@ -1,5 +1,5 @@
 """
-PhenoRx REST API for the React dashboard.
+CYPher REST API for the React dashboard.
 
 Endpoints:
   POST /api/v1/analyze
@@ -17,7 +17,7 @@ import json
 import os
 from pathlib import Path
 
-# Repo root: .../src/phenorx/api/main.py -> parents[3]
+# Repo root: .../src/cypher/api/main.py -> parents[3]
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 try:
     from dotenv import load_dotenv
@@ -35,25 +35,25 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from phenorx.engine.genotype_extractor import extract_from_pdf, parse_vcf
-from phenorx.engine.genotype_parser import genotype_to_activity
-from phenorx.engine.pipeline import (
+from cypher.engine.genotype_extractor import extract_from_pdf, parse_vcf
+from cypher.engine.genotype_parser import genotype_to_activity
+from cypher.engine.pipeline import (
     load_default_allele_map,
     load_default_knowledge_base,
     run_pipeline,
 )
-from phenorx.api.clinician_summary import clinician_summary_to_dict, generate_clinician_summary
-from phenorx.api.drug_profile_builder import build_drug_profiles_response
-from phenorx.data.formulary_service import MockFormularyService, get_service_for_patient
+from cypher.api.clinician_summary import clinician_summary_to_dict, generate_clinician_summary
+from cypher.api.drug_profile_builder import build_drug_profiles_response
+from cypher.data.formulary_service import MockFormularyService, get_service_for_patient
 
 ROOT = Path(__file__).resolve().parents[3]
 HELP_PAGES = {"intake", "enzyme", "risk", "summary"}
 
 HELP_CONTEXTS: Dict[str, Dict[str, Any]] = {
     "global": {
-        "app_name": "PhenoRx",
+        "app_name": "CYPher",
         "app_purpose": (
-            "PhenoRx is a medication review dashboard that combines entered genotypes, "
+            "CYPher is a medication review dashboard that combines entered genotypes, "
             "medications, and optional insurance plan information to explain potential "
             "drug-gene issues and show the next pages in the workflow."
         ),
@@ -149,7 +149,7 @@ HELP_CONTEXTS: Dict[str, Dict[str, Any]] = {
     },
 }
 
-app = FastAPI(title="PhenoRx API", version="1.0.0")
+app = FastAPI(title="CYPher API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -158,6 +158,7 @@ app.add_middleware(
         "http://localhost:5173",
         "http://127.0.0.1:4173",
         "http://localhost:4173",
+        "https://phenorx-nayanp38s-projects.vercel.app/"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -562,7 +563,7 @@ def help_chat(req: HelpChatRequest) -> Dict[str, Any]:
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=(
-                    "You are the in-app help assistant for PhenoRx. "
+                    "You are the in-app help assistant for CYPher. "
                     "Answer only using the provided product context. "
                     "Be concise, practical, and UI-focused. "
                     "If asked for clinical advice, say you can only explain how the app works and "

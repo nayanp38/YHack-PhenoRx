@@ -22,7 +22,7 @@ Where to find the latest CMS formulary ZIP
 -------------------------------------------
   https://www.cms.gov/medicare/prescription-drug-coverage/prescriptiondrugcovgenin/downloads
   Look for "Prescription Drug Plan Formulary, Pharmacy Network, and Pricing Information"
-  Update CMS_FORMULARY_URL in src/phenorx/data/cms_etl.py with the new URL each year.
+  Update CMS_FORMULARY_URL in src/cypher/data/cms_etl.py with the new URL each year.
 """
 
 from __future__ import annotations
@@ -30,9 +30,9 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from phenorx.data.cms_etl import CMS_FORMULARY_URL, build_formulary_db, download_cms_zip
-from phenorx.data.knowledge_base_loader import load_knowledge_base
-from phenorx.data.rxnorm_service import RxNormService
+from cypher.data.cms_etl import CMS_FORMULARY_URL, build_formulary_db, download_cms_zip
+from cypher.data.knowledge_base_loader import load_knowledge_base
+from cypher.data.rxnorm_service import RxNormService
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW_DIR = ROOT / "data" / "cms" / "raw"

@@ -120,7 +120,7 @@ export function HelpChat({ page }: Props) {
             <div>
               <div className="flex items-center gap-2 text-sm font-semibold">
                 <Bot className="h-4 w-4 text-[var(--px-accent)]" />
-                PhenoRx Help
+                CYPher Help
               </div>
               <p className="mt-1 text-xs text-[var(--px-text-secondary)]">
                 UI guidance for {PAGE_LABELS[page]}. Not medical advice.

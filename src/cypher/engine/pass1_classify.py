@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from phenorx.data.knowledge_base_loader import KnowledgeBaseKey, normalize_drug_name
+from cypher.data.knowledge_base_loader import KnowledgeBaseKey, normalize_drug_name
 
 from .models import DrugClassificationCell
 

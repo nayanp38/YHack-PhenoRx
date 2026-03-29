@@ -263,7 +263,7 @@ def _validate_extracted_entries(
     entries: List[dict], source_type: str
 ) -> ExtractionResult:
     """Validate and normalize extracted genotype entries from either source."""
-    from phenorx.engine.genotype_parser import activity_to_phenotype, genotype_to_activity
+    from cypher.engine.genotype_parser import activity_to_phenotype, genotype_to_activity
 
     genotypes: Dict[str, str] = {}
     details: List[ExtractedGenotype] = []
@@ -302,7 +302,7 @@ def _validate_extracted_entries(
             if reported_pheno and computed_pheno:
                 if reported_pheno.lower() != computed_pheno.lower():
                     validation_warning = (
-                        f"Lab reported {reported_pheno} but PhenoRx computes "
+                        f"Lab reported {reported_pheno} but CYPher computes "
                         f"{computed_pheno} for {gene} {clean_diplotype}"
                     )
                     warnings.append(validation_warning)

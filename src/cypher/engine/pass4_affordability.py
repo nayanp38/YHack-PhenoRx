@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from .models import AffordabilityResult, FormularyEntry, InteractionResult, RankedAlternative
-from phenorx.data.formulary_service import FormularyService, get_service_for_patient
+from cypher.data.formulary_service import FormularyService, get_service_for_patient
 
 
 def _affordability_sort_key(item: Tuple[str, FormularyEntry]) -> tuple:

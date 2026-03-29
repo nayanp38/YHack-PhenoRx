@@ -4,9 +4,9 @@ import sqlite3
 from pathlib import Path
 from typing import List, Optional
 
-from phenorx.engine.models import FormularyEntry
-from phenorx.data.formulary_service import FormularyService, MockFormularyService
-from phenorx.data.rxnorm_service import RxNormService
+from cypher.engine.models import FormularyEntry
+from cypher.data.formulary_service import FormularyService, MockFormularyService
+from cypher.data.rxnorm_service import RxNormService
 
 _TIER_LABEL: dict[int, str] = {
     1: "Preferred Generic",

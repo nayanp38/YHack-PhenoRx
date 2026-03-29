@@ -1,4 +1,4 @@
-/** PhenoRx dashboard types (aligned with API + technical spec §9). */
+/** CYPher dashboard types (aligned with API + technical spec §9). */
 
 export type ActiveView = 'intake' | 'enzyme' | 'risk' | 'summary'
 

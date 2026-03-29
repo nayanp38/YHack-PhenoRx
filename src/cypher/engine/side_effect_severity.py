@@ -1,10 +1,10 @@
 """
-PhenoRx Side Effect Severity Module v3 — Severity-Adjusted Probability (SAP).
+CYPher Side Effect Severity Module v3 — Severity-Adjusted Probability (SAP).
 
 Replaces v2 WSI. Computes SAP from label adverse events with inclusion filters,
 quadratic severity weighting, v3 probability defaults, and 0.50 SAP delta verdicts.
 
-See PhenoRx_Side_Effect_Severity_Module_v3 specification.
+See CYPher_Side_Effect_Severity_Module_v3 specification.
 """
 from __future__ import annotations
 

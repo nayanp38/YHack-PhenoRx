@@ -10,4 +10,4 @@ if [[ -f "$ROOT/.env" ]]; then
   set +a
 fi
 export PYTHONPATH="$ROOT/src"
-exec "$ROOT/.venv/bin/uvicorn" phenorx.api.main:app --reload --host 127.0.0.1 --port 8000
+exec "$ROOT/.venv/bin/uvicorn" cypher.api.main:app --reload --host 127.0.0.1 --port 8000

@@ -36,7 +36,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 
-from phenorx.engine.pipeline import (  # noqa: E402
+from cypher.engine.pipeline import (  # noqa: E402
     load_default_allele_map,
     load_default_knowledge_base,
     run_pipeline,
@@ -217,7 +217,7 @@ def _print_text(result: dict, *, batch_index: int | None = None, batch_total: in
 
 def main() -> None:
     ap = argparse.ArgumentParser(
-        description="PhenoRx: genotypes + meds → baseline/effective activity + flagged interactions."
+        description="CYPher: genotypes + meds → baseline/effective activity + flagged interactions."
     )
     ap.add_argument(
         "-g",

@@ -180,7 +180,7 @@ export function DischargeSummary({
           style={{ background: 'rgba(255,255,255,0.015)', borderColor: 'var(--px-border)' }}
         >
           <span>Generated for clinical review · CPIC + FDA sourced</span>
-          <span className="font-mono text-[10px]">PhenoRx</span>
+          <span className="font-mono text-[10px]">CYPher</span>
         </div>
       </div>
 

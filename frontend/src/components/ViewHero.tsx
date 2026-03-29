@@ -3,7 +3,7 @@ type Props = {
   subtitle: string
 }
 
-/** Centered page title block matching reference PhenoRx layout */
+/** Centered page title block matching reference CYPher layout */
 export function ViewHero({ title, subtitle }: Props) {
   return (
     <div className="animate-fade-up mb-12 pt-3 text-center">

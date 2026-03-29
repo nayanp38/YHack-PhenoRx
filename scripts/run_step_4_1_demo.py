@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from phenorx.engine.genotype_parser import baseline_as_dict, genotype_to_activity
+from cypher.engine.genotype_parser import baseline_as_dict, genotype_to_activity
 
 
 ROOT = Path(__file__).resolve().parents[1]
