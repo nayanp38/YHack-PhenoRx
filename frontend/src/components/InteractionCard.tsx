@@ -50,9 +50,16 @@ type Props = {
   interaction: InteractionResult
   affordability: AffordabilityResult[] | undefined
   insurance?: InsuranceScreeningResult | null
+  /** From pipeline meta: SAP Δ band for BETTER/WORSE (v3 default 0.5). */
+  clinicalSapVerdictThreshold?: number
 }
 
-export function InteractionCard({ interaction, affordability, insurance }: Props) {
+export function InteractionCard({
+  interaction,
+  affordability,
+  insurance,
+  clinicalSapVerdictThreshold,
+}: Props) {
   const rs = riskStyles(interaction.risk_level)
   const affRow = affordabilityFor(interaction.drug_name, affordability)
   const rankedAlternatives = affRow?.ranked_alternatives ?? []
@@ -165,7 +172,7 @@ export function InteractionCard({ interaction, affordability, insurance }: Props
                     severityVerdict={comp?.severity_verdict}
                     sideEffectData={comp}
                     flaggedDrugName={interaction.drug_name}
-                    flaggedDrugWsi={sideEffects?.flagged_drug_wsi}
+                    flaggedDrugSap={sideEffects?.flagged_drug_sap}
                     flaggedTop3={sideEffects?.flagged_drug_top_3}
                   />
                 )
@@ -210,41 +217,35 @@ export function InteractionCard({ interaction, affordability, insurance }: Props
         </section>
       )}
 
-      {/* Section D: Side Effect Profile */}
+      {/* Section D: Side Effect Profile — SAP v3 (severity-adjusted probability) */}
       {sideEffects && (
         <div
-          style={{
-            borderTop: '1px solid var(--gray-200)',
-            padding: '16px 0',
-            display: 'flex',
-            gap: '24px',
-          }}
+          className="mt-4 flex flex-col gap-4 border-t border-[var(--gray-200)] pt-4 md:flex-row md:gap-6"
+          data-testid="side-effect-profile"
         >
-          <div style={{ flex: '0 0 40%' }}>
-            <div
-              style={{
-                fontSize: '12px',
-                fontWeight: 700,
-                color: 'var(--gray-500)',
-                marginBottom: '8px',
-              }}
-            >
-              Side Effect Profile
+          <div className="min-w-0 md:w-[40%] md:flex-shrink-0 md:flex-grow-0">
+            <div className="mb-2 text-[12px] font-bold uppercase tracking-[0.06em] text-[var(--gray-500)]">
+              Side Effect Profile (SAP v3)
             </div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'baseline',
-                gap: '8px',
-                marginBottom: '8px',
-              }}
-            >
-              <span style={{ fontSize: '14px', fontWeight: 600 }}>{interaction.drug_name}</span>
-              <span
-                className="font-mono text-[13px] text-[var(--gray-500)]"
-              >
-                WSI: {sideEffects.flagged_drug_wsi.toFixed(2)}
+            {clinicalSapVerdictThreshold != null && (
+              <p className="mb-2 text-[10px] leading-snug text-[var(--gray-500)]">
+                BETTER/WORSE when SAP |Δ| exceeds {clinicalSapVerdictThreshold.toFixed(2)}. Actionable
+                warnings (NEW / higher frequency) follow §2.5 of the module spec.
+              </p>
+            )}
+            <div className="mb-2 flex flex-wrap items-baseline gap-2">
+              <span className="text-[14px] font-semibold text-[var(--gray-800)]">{interaction.drug_name}</span>
+              <span className="font-mono text-[13px] text-[var(--gray-500)]">
+                SAP: {sideEffects.flagged_drug_sap.toFixed(3)}
               </span>
+              {sideEffects.flagged_drug_boxed_warning && (
+                <span
+                  className="rounded px-1.5 py-0.5 text-[10px] font-bold text-[var(--boxed-warning-amber)]"
+                  style={{ background: 'var(--boxed-warning-amber-bg)' }}
+                >
+                  Boxed warning (+1.0 SAP)
+                </span>
+              )}
             </div>
             {sideEffects.flagged_drug_top_3.map((ae) => (
               <div
@@ -287,48 +288,46 @@ export function InteractionCard({ interaction, affordability, insurance }: Props
                     fontSize: '11px',
                   }}
                 >
-                  {ae.event_score.toFixed(2)}
+                  {ae.sap_score != null ? ae.sap_score.toFixed(3) : ae.event_score.toFixed(2)}
                 </span>
               </div>
             ))}
           </div>
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '8px',
-              alignContent: 'flex-start',
-            }}
-          >
-            {sideEffects.alternative_comparisons.map((comp) => (
-              <div
-                key={comp.alternative_drug}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  fontSize: '12px',
-                }}
-              >
-                <span style={{ fontWeight: 500 }}>{comp.alternative_drug}</span>
-                <SeverityBadge verdict={comp.severity_verdict} size="sm" />
-                {comp.severity_verdict === 'WORSE' && comp.unique_severe_events.length > 0 && (
-                  <span style={{ fontSize: '10px', color: 'var(--high-amber)' }}>
-                    +{comp.unique_severe_events.length} new G3+ risk
-                    {comp.unique_severe_events.length > 1 ? 's' : ''}
-                  </span>
-                )}
-                {comp.alternative_boxed_warning && !sideEffects.flagged_drug_boxed_warning && (
-                  <AlertTriangle
-                    size={12}
-                    strokeWidth={2}
-                    color="var(--boxed-warning-amber)"
-                    aria-label="Alternative has boxed warning; flagged drug does not"
-                  />
-                )}
-              </div>
-            ))}
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--gray-500)]">
+              Alternatives (SAP · Δ vs flagged)
+            </p>
+            <div className="flex flex-wrap content-start gap-x-3 gap-y-2">
+              {sideEffects.alternative_comparisons.map((comp) => (
+                <div
+                  key={comp.alternative_drug}
+                  className="flex max-w-full flex-wrap items-center gap-1.5 border-b border-[var(--gray-100)] pb-2 text-[12px] last:border-b-0 md:border-b-0 md:pb-0"
+                >
+                  <span className="font-medium text-[var(--gray-800)]">{comp.alternative_drug}</span>
+                  {comp.severity_verdict !== 'DATA_UNAVAILABLE' && (
+                    <span className="font-mono text-[11px] text-[var(--gray-500)]">
+                      SAP {comp.alternative_sap.toFixed(3)} · Δ{' '}
+                      {comp.severity_delta >= 0 ? '+' : ''}
+                      {comp.severity_delta.toFixed(3)}
+                    </span>
+                  )}
+                  <SeverityBadge verdict={comp.severity_verdict} size="md" />
+                  {(comp.actionable_warnings ?? []).length > 0 && (
+                    <span className="w-full text-[10px] leading-snug text-[var(--gray-600)] md:max-w-[360px]">
+                      Actionable: {(comp.actionable_warnings ?? []).map((w) => w.display).join(' · ')}
+                    </span>
+                  )}
+                  {comp.alternative_boxed_warning && !sideEffects.flagged_drug_boxed_warning && (
+                    <AlertTriangle
+                      size={12}
+                      strokeWidth={2}
+                      color="var(--boxed-warning-amber)"
+                      aria-label="Alternative has boxed warning; flagged drug does not"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

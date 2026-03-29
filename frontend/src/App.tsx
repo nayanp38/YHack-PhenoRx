@@ -21,6 +21,7 @@ import { RiskReport } from './components/RiskReport'
 import { DrugMatrix } from './components/DrugMatrix'
 import { DischargeSummary } from './components/DischargeSummary'
 import { ViewStepper } from './components/ViewStepper'
+import { HelpChat } from './components/HelpChat'
 
 const VIEW_ORDER: ActiveView[] = ['intake', 'enzyme', 'risk', 'matrix', 'summary']
 
@@ -69,7 +70,9 @@ export default function App() {
       })
       setPipelineResult(pipeline)
       setHasAnalyzed(true)
-      setActiveView('enzyme')
+      // Side effect profile (Section D) lives on Integrated Risk Report — open it when there are findings.
+      const nInteractions = pipeline.interactions?.length ?? 0
+      setActiveView(nInteractions > 0 ? 'risk' : 'enzyme')
 
       const [ins, summary] = await Promise.all([
         payload.plan != null
@@ -245,6 +248,8 @@ export default function App() {
           </button>
         </div>
       )}
+
+      {activeView === 'intake' && <HelpChat page={activeView} />}
     </div>
   )
 }

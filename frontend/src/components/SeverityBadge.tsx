@@ -12,9 +12,9 @@ const VERDICT_STYLES: Record<
   SeverityVerdict,
   { bg: string; text: string; label: string; Icon: typeof TrendingDown | typeof HelpCircle | null }
 > = {
-  BETTER: { bg: '#F0FDF4', text: '#16A34A', label: 'Better', Icon: TrendingDown },
-  EQUIVALENT: { bg: '#F3F4F6', text: '#6B7280', label: 'Similar', Icon: null },
-  WORSE: { bg: '#FEF2F2', text: '#DC2626', label: 'Worse', Icon: TrendingUp },
+  BETTER: { bg: '#F0FDF4', text: '#16A34A', label: 'Better Side Effect Profile', Icon: TrendingUp },
+  EQUIVALENT: { bg: '#F3F4F6', text: '#6B7280', label: 'Similar Side Effect Profile', Icon: null },
+  WORSE: { bg: '#FEF2F2', text: '#DC2626', label: 'Worse Side Effect Profile', Icon: TrendingDown },
   DATA_UNAVAILABLE: { bg: '#F8FAFC', text: '#94A3B8', label: 'No Data', Icon: HelpCircle },
 }
 

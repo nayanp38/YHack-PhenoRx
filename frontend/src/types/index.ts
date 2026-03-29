@@ -2,6 +2,12 @@
 
 export type ActiveView = 'intake' | 'enzyme' | 'risk' | 'matrix' | 'summary'
 
+export interface HelpChatReply {
+  page: ActiveView
+  answer: string
+  suggested_questions: string[]
+}
+
 export interface EnzymeBaseline {
   enzyme_name: string
   activity_score: number
@@ -70,12 +76,21 @@ export interface InteractionResult {
   side_effect_comparison?: SideEffectComparison
 }
 
+export interface PipelineMeta {
+  side_effect_profiles_path?: string
+  side_effect_profiles_loaded?: boolean
+  /** SAP scale: |Δ| above this yields BETTER/WORSE (v3 default 0.5). */
+  sap_verdict_threshold?: number
+  side_effect_model?: string
+}
+
 export interface PipelineResult {
   patient_id?: string | null
   enzyme_dashboard: Record<string, EnzymeDashboardRow>
   drug_matrix: Record<string, Record<string, DrugClassificationCell>>
   interactions: InteractionResult[]
   affordability: AffordabilityResult[]
+  meta?: PipelineMeta
 }
 
 export interface InsurancePlan {
@@ -131,20 +146,29 @@ export interface AdverseEvent {
   frequency_weight: number
   event_score: number
   soc: string
+  /** SAP v3: contribution p×G² for included events */
+  sap_score?: number
+}
+
+export interface ActionableWarning {
+  kind: 'NEW_RISK' | 'HIGHER_RISK'
+  meddra_pt: string
+  display: string
+  weight?: number
 }
 
 export interface AlternativeComparison {
   alternative_drug: string
-  alternative_wsi: number
+  alternative_sap: number
   severity_delta: number
   severity_verdict: 'BETTER' | 'EQUIVALENT' | 'WORSE' | 'DATA_UNAVAILABLE'
   alternative_boxed_warning: boolean
   alternative_top_3: AdverseEvent[]
-  unique_severe_events: string[]
+  actionable_warnings: ActionableWarning[]
 }
 
 export interface SideEffectComparison {
-  flagged_drug_wsi: number
+  flagged_drug_sap: number
   flagged_drug_boxed_warning: boolean
   flagged_drug_top_3: AdverseEvent[]
   alternative_comparisons: AlternativeComparison[]
