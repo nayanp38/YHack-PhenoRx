@@ -38,7 +38,7 @@ export function NavBar({ onLoadDemo }: Props) {
           <Dna size={14} color="var(--px-accent)" aria-hidden />
         </div>
         <span className="font-display text-[18px] font-semibold tracking-[-0.02em] text-[var(--px-text)]">
-          CYPher
+          <span style={{ color: 'var(--px-accent)' }}>CYP</span>her
         </span>
         <span
           className="rounded px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.1em]"

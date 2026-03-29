@@ -151,15 +151,25 @@ HELP_CONTEXTS: Dict[str, Dict[str, Any]] = {
 
 app = FastAPI(title="CYPher API", version="1.0.0")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
+_cors_origins_env = os.getenv("CORS_ALLOW_ORIGINS", "")
+_cors_allow_origins = [
+    origin.strip()
+    for origin in _cors_origins_env.split(",")
+    if origin.strip()
+]
+if not _cors_allow_origins:
+    _cors_allow_origins = [
         "http://127.0.0.1:5173",
         "http://localhost:5173",
         "http://127.0.0.1:4173",
         "http://localhost:4173",
-        "https://phenorx-nayanp38s-projects.vercel.app/"
-    ],
+    ]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_cors_allow_origins,
+    # Allow preview and production Vercel domains without code changes.
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
